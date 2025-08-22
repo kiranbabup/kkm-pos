@@ -5,18 +5,9 @@ import LsService, { storageKey } from "../services/localstorage";
 import DownloadIcon from '@mui/icons-material/Download';
 
 const HeaderPannel = ({ HeaderTitle, tableData, onDownloadCurrentList }) => {
+    const userLoginStatus = LsService.getItem(storageKey);
     const [anchorEl, setAnchorEl] = useState(null);
     const navigate = useNavigate();
-
-    const userLoginStatus = LsService.getItem(storageKey);
-
-    // useEffect(() => {
-    //     // console.log(userLoginStatus);
-
-    //     if (!userLoginStatus) {
-    //         navigate("/");
-    //     }
-    // }, [userLoginStatus, navigate]);
 
     const handleAvatarClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -58,7 +49,7 @@ const HeaderPannel = ({ HeaderTitle, tableData, onDownloadCurrentList }) => {
             <Box sx={{ display: "flex", justifyContent: "end", alignItems: "center" }}>
                 <Box
                     sx={{
-                        width: 40, height: 40, bgcolor: "#222", color: "#fff",
+                        width: 40, height: 40, bgcolor: "#f47920", color: "#fff",
                         borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
                         fontWeight: "bold", fontSize: 22, cursor: "pointer"
                     }}

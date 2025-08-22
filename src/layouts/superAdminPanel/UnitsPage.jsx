@@ -57,50 +57,6 @@ const UnitsPage = () => {
         }
     };
 
-    const columns = [
-        { field: "id", headerName: "ID", width: 80 },
-        { field: "created_on", headerName: "Created On", flex: 1 },
-        { field: "unit", headerName: "Units Name", width: 180 },
-        { field: "short_name", headerName: "Short Name", width: 120 },
-        { field: "no_of_products", headerName: "No. of Products", flex: 1 },
-        {
-            field: "status",
-            headerName: "Status",
-            flex: 1,
-            renderCell: (params) => (
-                <Switch
-                    checked={params.row.status}
-                    onChange={() => toggleUsageStatus(params.row.unit_id, params.row.status)}
-                    color="primary"
-                />
-            )
-        },
-        {
-            field: "actions",
-            headerName: "Actions",
-            flex: 1,
-            sortable: false,
-            renderCell: (params) => (
-                <Button
-                    size="small"
-                    variant="contained"
-                    onClick={() => {
-                        setFormData({
-                            unit: params.row.unit,
-                            short_name: params.row.short_name,
-                            no_of_products: params.row.no_of_products,
-                        })
-                        setEditUniSrlno(params.row.unit_id);
-                        setModalOpen(true);
-                        setFormType("Edit Units");
-                    }}
-                >
-                    Edit
-                </Button>
-            )
-        }
-    ];
-
     const handleSave = async () => {
         try {
             setLoadingUnit(true);
@@ -175,6 +131,50 @@ const UnitsPage = () => {
         }
     };
 
+    const columns = [
+        { field: "id", headerName: "ID", width: 80 },
+        { field: "created_on", headerName: "Created On", flex: 1 },
+        { field: "unit", headerName: "Units Name", width: 180 },
+        { field: "short_name", headerName: "Short Name", width: 120 },
+        { field: "no_of_products", headerName: "No. of Products", flex: 1 },
+        {
+            field: "status",
+            headerName: "Status",
+            flex: 1,
+            renderCell: (params) => (
+                <Switch
+                    checked={params.row.status}
+                    onChange={() => toggleUsageStatus(params.row.unit_id, params.row.status)}
+                    color="primary"
+                />
+            )
+        },
+        {
+            field: "actions",
+            headerName: "Actions",
+            flex: 1,
+            sortable: false,
+            renderCell: (params) => (
+                <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => {
+                        setFormData({
+                            unit: params.row.unit,
+                            short_name: params.row.short_name,
+                            no_of_products: params.row.no_of_products,
+                        })
+                        setEditUniSrlno(params.row.unit_id);
+                        setModalOpen(true);
+                        setFormType("Edit Units");
+                    }}
+                >
+                    Edit
+                </Button>
+            )
+        }
+    ];
+
     const closeUserModal = () => {
         setModalOpen(false);
         setFormData({
@@ -207,7 +207,7 @@ const UnitsPage = () => {
             <Box
                 sx={{ minWidth: "calc( 99vw - 18vw)", }}
             >
-                <HeaderPannel HeaderTitle="Manage Industries"
+                <HeaderPannel HeaderTitle="Manage Units"
                     tableData={tableData}
                 // onDownloadCurrentList ={onDownloadxl}
                 />

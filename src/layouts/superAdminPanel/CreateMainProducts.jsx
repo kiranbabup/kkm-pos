@@ -163,7 +163,7 @@ function CreateMainProducts() {
                             <Grid item size={6}>
                                 <TextField
                                     fullWidth
-                                    label="Barcode"
+                                    label="Barcode (Manual input or use Scanner)"
                                     name="barcode"
                                     value={formData.barcode}
                                     onChange={handleChange}
@@ -197,7 +197,7 @@ function CreateMainProducts() {
                                 <Grid item size={4}>
                                     <TextField
                                         fullWidth
-                                        label="Price"
+                                        label="MRP"
                                         name="products_price"
                                         type="number"
                                         inputProps={{ min: 1, step: "0.01" }}
@@ -210,7 +210,7 @@ function CreateMainProducts() {
                                 <Grid item size={4}>
                                     <TextField
                                         fullWidth
-                                        label="Discount Price"
+                                        label="Selling Price"
                                         name="discount_price"
                                         type="number"
                                         inputProps={{ min: 1, step: "0.01" }}

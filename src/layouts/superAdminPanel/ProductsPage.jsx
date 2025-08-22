@@ -5,6 +5,7 @@ import { Box, Button, Switch, TextField, Typography } from "@mui/material";
 import LeftPannel from "../../components/LeftPannel";
 import HeaderPannel from "../../components/HeaderPannel";
 import { useNavigate } from "react-router-dom";
+import EditProductsModal from "./superComponents/EditProducts";
 
 function ProductsPage() {
     const [loading, setLoading] = useState(false);
@@ -20,6 +21,8 @@ function ProductsPage() {
     const [productErrMesg, setProductErrMesg] = useState("");
     const [search, setSearch] = useState("");
     const [searchResults, setSearchResults] = useState([]);
+    const [openEP, setOpenEP] = useState(false);
+    const [rowProductData, setRowProductData] = useState("");
     const nav = useNavigate();
 
     useEffect(() => {
@@ -47,7 +50,7 @@ function ProductsPage() {
             setTableData(allProducts.slice(start, end));
             setRowCount(rowMainCount);
         }
-    }, [paginationModel,allProducts, searchResults, search]);
+    }, [paginationModel, allProducts, searchResults, search]);
 
     const fetchProducts = async () => {
         try {
@@ -97,54 +100,6 @@ function ProductsPage() {
         }
     };
 
-    const columns = [
-        { field: "id", headerName: "ID", width: 80 },
-        { field: "created_on", headerName: "Created On", flex: 1 },
-        { field: "products_name", headerName: "Products Name", width: 180 },
-        { field: "products_price", headerName: "Products Price", flex: 1 },
-        { field: "discount_price", headerName: "Discount Price", flex: 1 },
-        { field: "quantity", headerName: "Quantity", flex: 1 },
-        {
-            field: "status",
-            headerName: "Status",
-            flex: 1,
-            renderCell: (params) => (
-                <Switch
-                    checked={params.row.status === "active"}
-                    onChange={() => toggleUsageStatus(params.row.barcode, params.row.status)}
-                    color="primary"
-                />
-            )
-        },
-        // {
-        //     field: "actions",
-        //     headerName: "Actions",
-        //     flex: 1,
-        //     sortable: false,
-        //     renderCell: (params) => (
-        //         <Button
-        //             size="small"
-        //             variant="contained"
-        //             onClick={() => {
-        //                 setFormData({
-        //                     productname: params.row.productname,
-        //                     password: params.row.password,
-        //                     email: params.row.email,
-        //                     role: params.row.role,
-        //                     store_code: params.row.store_code,
-        //                     store_id: params.row.store_id,
-        //                 })
-        //                 setEditusrSrlno(params.row.product_id);
-        //                 setModalOpen(true);
-        //                 setFormType("Edit Product");
-        //             }}
-        //         >
-        //             Edit
-        //         </Button>
-        //     )
-        // }
-    ];
-
     const toggleUsageStatus = async (barcode, currentStatus) => {
         try {
             const newStatus = currentStatus === "active" ? "inactive" : "active";
@@ -167,6 +122,50 @@ function ProductsPage() {
             }, 20000); // Clear messages after 1 minute 
         }
     };
+
+    const closeEditProductsModal = () => {
+        setRowProductData("")
+        setOpenEP(false);
+    }
+
+    const columns = [
+        { field: "id", headerName: "ID", width: 80 },
+        { field: "created_on", headerName: "Created On", flex: 1 },
+        { field: "products_name", headerName: "Products Name", width: 180 },
+        { field: "products_price", headerName: "Products Price", flex: 1 },
+        { field: "discount_price", headerName: "Discount Price", flex: 1 },
+        { field: "quantity", headerName: "Quantity", flex: 1 },
+        {
+            field: "status",
+            headerName: "Status",
+            flex: 1,
+            renderCell: (params) => (
+                <Switch
+                    checked={params.row.status === "active"}
+                    onChange={() => toggleUsageStatus(params.row.barcode, params.row.status)}
+                    color="primary"
+                />
+            )
+        },
+        {
+            field: "actions",
+            headerName: "Actions",
+            flex: 1,
+            sortable: false,
+            renderCell: (params) => (
+                <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => {
+                        setRowProductData(params.row)
+                        setOpenEP(true);
+                    }}
+                >
+                    Edit
+                </Button>
+            )
+        }
+    ];
 
     return (
         <Box sx={{
@@ -211,7 +210,7 @@ function ProductsPage() {
                         {/* <IconButton onClick={() => fetchCitiesData()} ><RefreshIcon /></IconButton> */}
                         <Box
                             sx={{
-                                width:"99%",
+                                width: "99%",
                                 display: "flex",
                                 justifyContent: "space-between",
                                 alignItems: "center",
@@ -219,11 +218,12 @@ function ProductsPage() {
                             }}
                         >
                             <TextField
-                                label="Search Product"
+                                label="Search Product by Name or Barcode"
                                 placeholder="Search Product"
                                 variant="outlined"
                                 size="small"
                                 value={search}
+                                sx={{ width: "30rem" }}
                                 onChange={e => setSearch(e.target.value)}
                             />
 
@@ -245,6 +245,12 @@ function ProductsPage() {
                         </Box>
                     </Box>
 
+                    <EditProductsModal
+                        open={openEP}
+                        onClose={() => closeEditProductsModal()}
+                        fetchProducts={fetchProducts}
+                        productsData={rowProductData}
+                    />
                     <TableComponent
                         tableData={tableData}
                         columns={columns}

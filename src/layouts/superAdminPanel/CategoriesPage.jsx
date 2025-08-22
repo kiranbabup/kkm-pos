@@ -54,56 +54,7 @@ function CategoriesPage() {
         }
     };
 
-    const columns = [
-        { field: "id", headerName: "ID", width: 80 },
-        { field: "created_on", headerName: "Created On", flex: 1 },
-        { field: "category", headerName: "Category", width: 180 },
-        {
-            field: "status",
-            headerName: "Status",
-            flex: 1,
-            renderCell: (params) => (
-                <Switch
-                    checked={params.row.status}
-                    onChange={() => toggleUsageStatus(params.row.category_id, params.row.status, params.row.category)}
-                    color="primary"
-                />
-            )
-        },
-        {
-            field: "is_active",
-            headerName: "Delete",
-            width: 150,
-            renderCell: (params) => (
-                <Switch
-                    checked={params.row.is_active}
-                    onChange={() => toggleUsageisActive(params.row.category_id, params.row.is_active, params.row.category)}
-                    color="primary"
-                />
-            )
-        },
-        {
-            field: "actions",
-            headerName: "Actions",
-            flex: 1,
-            sortable: false,
-            renderCell: (params) => (
-                <Button
-                    size="small"
-                    variant="contained"
-                    onClick={() => {
-                        setEditCatValue(params.row.category);
-                        setEditCatSrlno(params.row.category_id);
-                        setEditModalOpen(true);
-                    }}
-                >
-                    Edit
-                </Button>
-            )
-        }
-    ];
-
-    const onClickAddCategory = async () => {
+        const onClickAddCategory = async () => {
         try {
             setLoadingCategory(true);
             setCategoryMesg("");
@@ -133,7 +84,6 @@ function CategoriesPage() {
             }, 20000);  // Clear messages after 20 seconds
         }
     };
-
 
     const toggleUsageStatus = async (id, currentStatus, category) => {
         try {
@@ -200,6 +150,55 @@ function CategoriesPage() {
         }
     }
 
+    const columns = [
+        { field: "id", headerName: "ID", width: 80 },
+        { field: "created_on", headerName: "Created On", flex: 1 },
+        { field: "category", headerName: "Category", width: 180 },
+        {
+            field: "status",
+            headerName: "Status",
+            flex: 1,
+            renderCell: (params) => (
+                <Switch
+                    checked={params.row.status}
+                    onChange={() => toggleUsageStatus(params.row.category_id, params.row.status, params.row.category)}
+                    color="primary"
+                />
+            )
+        },
+        {
+            field: "is_active",
+            headerName: "Delete",
+            width: 150,
+            renderCell: (params) => (
+                <Switch
+                    checked={params.row.is_active}
+                    onChange={() => toggleUsageisActive(params.row.category_id, params.row.is_active, params.row.category)}
+                    color="primary"
+                />
+            )
+        },
+        {
+            field: "actions",
+            headerName: "Actions",
+            flex: 1,
+            sortable: false,
+            renderCell: (params) => (
+                <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => {
+                        setEditCatValue(params.row.category);
+                        setEditCatSrlno(params.row.category_id);
+                        setEditModalOpen(true);
+                    }}
+                >
+                    Edit
+                </Button>
+            )
+        }
+    ];
+
     return (
         <Box sx={{
             width: "99vw",
@@ -221,7 +220,7 @@ function CategoriesPage() {
             <Box
                 sx={{ minWidth: "calc( 99vw - 18vw)", }}
             >
-                <HeaderPannel HeaderTitle="Manage Industries"
+                <HeaderPannel HeaderTitle="Manage Categories"
                     tableData={tableData}
                 // onDownloadCurrentList ={onDownloadxl}
                 />

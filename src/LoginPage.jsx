@@ -26,7 +26,7 @@ const LoginPage = () => {
             } else if (user.role === "warehouse") {
                 navigate("/warehouse-admin");
             } else if (user.role === "store") {
-                navigate("/store-admin");
+                navigate("/store-manager");
             } else if (user.role === "cashier") {
                 navigate("/casher-panel");
             }
@@ -46,7 +46,7 @@ const LoginPage = () => {
             const response = await login({ username: loginId, password });
             console.log(response.data.user);
 
-            const { role, store_code, is_active } = response.data.user;
+            const { role, store_code, is_active, store_id, user_id } = response.data.user;
             if (!is_active) {
                 setErrorMsg("Your account is inactive. Please contact the administrator.");
                 return;
@@ -62,11 +62,11 @@ const LoginPage = () => {
                 LsService.setItem(storageKey, { username: loginId, role, store_code, });
                 navigate("/warehouse-admin");
             } else if (role === "store") {
-                LsService.setItem(storageKey, { username: loginId, role, store_code, });
-                navigate("/store-admin");
-            } else if (role === "casher") {
-                LsService.setItem(storageKey, { username: loginId, role, store_code, });
-                navigate("/casher-panel");
+                LsService.setItem(storageKey, { username: loginId, role, store_code, store_id, user_id});
+                navigate("/store-manager");
+            } else if (role === "cashier") {
+                LsService.setItem(storageKey, { username: loginId, role, store_code, store_id, user_id});
+                navigate("/cashier-panel");
             } else {
                 setErrorMsg("Invalid user type.");
             }

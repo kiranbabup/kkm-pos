@@ -10,7 +10,8 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    Typography
 } from "@mui/material";
 import { getAllStores } from "../../../services/api";
 
@@ -24,10 +25,11 @@ function UserModal({
     onEdit,
     handleChange,
     handleStoreSelect,
-    stores
+    stores,
+    errMsg
 }) {
     // console.log(stores);
-    
+
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
             <DialogTitle>{formType === "Edit User" ? "Edit User" : "Add User"}</DialogTitle>
@@ -57,6 +59,7 @@ function UserModal({
                             value={formData.email || ""}
                             onChange={(e) => handleChange("email", e.target.value)}
                             fullWidth
+                            type="email"
                             required
                         />
                     </Grid>
@@ -95,12 +98,17 @@ function UserModal({
                     </Grid>
                 </Grid>
             </DialogContent>
-            <DialogActions>
-                <Button color="error" onClick={onClose} disabled={loading}>Cancel</Button>
+            <DialogActions sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <Button color="error" variant="outlined" onClick={onClose} disabled={loading}>Cancel</Button>
+                {errMsg && (
+                    <Typography sx={{ color: "red", fontSize: "0.9rem" }}>
+                        {errMsg}
+                    </Typography>
+                )}
                 <Button
                     variant="contained"
                     onClick={formType === "Add User" ? onSave : onEdit}
-                    disabled={loading}
+                    disabled={loading || formData.password === "" || formData.username === "" || formData.email === ""}
                 >
                     {loading ? "Saving..." : "Save"}
                 </Button>

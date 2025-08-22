@@ -93,7 +93,7 @@ function AddStoreProducts() {
             }
         } catch (error) {
             setProductErrMesg(
-                error?.response?.data?.message || "Error creating product"
+                error?.response?.data?.message || "Error adding product"
             );
         } finally {
             setLoading(false);
@@ -117,7 +117,6 @@ function AddStoreProducts() {
             height: "94vh",
             backgroundColor: "white",
             display: "flex",
-            gap: 2
         }}>
             {/* left pannel */}
             <Box
@@ -125,12 +124,12 @@ function AddStoreProducts() {
                     display: "flex", justifyContent: "center", alignItems: "start", width: "18vw", mt: 1.5
                 }}
             >
-                <LeftPannel HeaderTitle="Super Admin" />
+                <LeftPannel HeaderTitle="Store Manager" />
             </Box>
 
             {/* Right pannel */}
             <Box sx={{ minWidth: "calc( 99vw - 18vw)", }} >
-                <HeaderPannel HeaderTitle="Add Products to Main Inventory" />
+                <HeaderPannel HeaderTitle="Add Products to Store Inventory" />
                 <Box sx={{ width: "99%" }}>
                     <Box
                         sx={{
@@ -191,7 +190,7 @@ function AddStoreProducts() {
                                     }}
                                 >
                                     <Grid container spacing={2}>
-                                        <Grid item size={6}>
+                                        <Grid item size={4}>
                                             <FormControl fullWidth>
                                                 <InputLabel>Products</InputLabel>
                                                 <Select
@@ -217,20 +216,21 @@ function AddStoreProducts() {
                                             </FormControl>
                                         </Grid>
 
-                                        <Grid item size={2}>
-                                            <TextField
+                                        <Grid item size={2} sx={{display:"flex", alignItems:"center"}}>
+                                            {/* <TextField
                                                 fullWidth
                                                 label="Available Quantity"
                                                 type="number"
                                                 value={availableQty}
                                                 disabled
-                                            />
+                                            /> */}
+                                            <Typography sx={{color:"grey"}}>Available Quantity: <strong style={{color:"black"}}>{availableQty}</strong></Typography>
                                         </Grid>
 
                                         <Grid item size={2}>
                                             <TextField
                                                 fullWidth
-                                                label="Quantity"
+                                                label="Send Quantity"
                                                 type="number"
                                                 inputProps={{ min: 1, max: availableQty }}
                                                 value={p.quantity}
@@ -241,7 +241,7 @@ function AddStoreProducts() {
                                             />
                                         </Grid>
 
-                                        <Grid item size={2} sx={{ display: "flex" }}>
+                                        <Grid item size={4} sx={{ display: "flex" }}>
                                             <Button
                                                 color="error"
                                                 onClick={() => handleRemove(index)}
@@ -296,7 +296,7 @@ function AddStoreProducts() {
                                 onClick={handleCreateProduct}
                                 disabled={loading}
                             >
-                                {loading ? "Creating..." : "Create Product"}
+                                {loading ? "Adding..." : "Add Product"}
                             </Button>
                         </Box>
 

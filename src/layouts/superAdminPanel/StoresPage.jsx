@@ -59,6 +59,80 @@ function StoresPage() {
         }
     };
 
+    const handleSave = async () => {
+        try {
+            setLoadingStore(true);
+            setStoreMesg("");
+            setStoreErrMesg("");
+            // Send state slno and city name
+            const response = await createStore(formData);
+            console.log(response);
+            console.log(response.data);
+            if (response.status === 201) {
+                setModalOpen(false);
+                setStoreMesg(response.data.message);
+                fetchStores();
+            } else {
+                console.error("Failed to add Store:", response.data.message);
+                setStoreErrMesg(response.data.message);
+            }
+        } catch (error) {
+            setStoreErrMesg(error.response.data.message);
+            console.error("Failed to add Store:", error.response);
+        } finally {
+            setLoadingStore(false);
+            setTimeout(() => {
+                setStoreMesg("");
+                setStoreErrMesg("");
+            }, 20000);  // Clear messages after 20 seconds
+        }
+    };
+
+    const toggleUsageStatus = async (id, currentStatus) => {
+        try {
+            const newStatus = !currentStatus;
+            const response = await updateStore(id, { status: newStatus, });
+            console.log(response);
+            console.log(response.data);
+            if (response.status === 200) {
+                setStoreMesg(response.data.message);
+                fetchStores();
+            } else {
+                console.error("Failed to update status:", response.data.message);
+                setStoreErrMesg(response.data.message);
+            }
+        } catch (error) {
+            console.error("Error updating status:", error);
+        } finally {
+            setTimeout(() => {
+                setStoreMesg("");
+                setStoreErrMesg("");
+            }, 20000); // Clear messages after 1 minute 
+        }
+    };
+
+    const handleEdit = async () => {
+        try {
+            const response = await updateStore(editSupSrlno, { formData });
+            console.log(response);
+            console.log(response.data);
+            if (response.status === 200) {
+                setStoreMesg(response.data.message);
+                fetchStores();
+            } else {
+                console.error("Failed to update status:", response.data.message);
+                setStoreErrMesg(response.data.message);
+            }
+        } catch (error) {
+            console.error("Error updating status:", error);
+        } finally {
+            setTimeout(() => {
+                setStoreMesg("");
+                setStoreErrMesg("");
+            }, 20000); // Clear messages after 1 minute 
+        }
+    };
+
     const columns = [
         { field: "id", headerName: "ID", width: 80 },
         { field: "created_at", headerName: "Created On", flex: 1 },
@@ -107,82 +181,6 @@ function StoresPage() {
         }
     ];
 
-
-    const handleSave = async () => {
-        try {
-            setLoadingStore(true);
-            setStoreMesg("");
-            setStoreErrMesg("");
-            // Send state slno and city name
-            const response = await createStore(formData);
-            console.log(response);
-            console.log(response.data);
-            if (response.status === 201) {
-                setModalOpen(false);
-                setStoreMesg(response.data.message);
-                fetchStores();
-            } else {
-                console.error("Failed to add Store:", response.data.message);
-                setStoreErrMesg(response.data.message);
-            }
-        } catch (error) {
-            setStoreErrMesg(error.response.data.message);
-            console.error("Failed to add Store:", error.response);
-        } finally {
-            setLoadingStore(false);
-            setTimeout(() => {
-                setStoreMesg("");
-                setStoreErrMesg("");
-            }, 20000);  // Clear messages after 20 seconds
-        }
-    };
-
-
-    const toggleUsageStatus = async (id, currentStatus) => {
-        try {
-            const newStatus = !currentStatus;
-            const response = await updateStore(id, { status: newStatus, });
-            console.log(response);
-            console.log(response.data);
-            if (response.status === 200) {
-                setStoreMesg(response.data.message);
-                fetchStores();
-            } else {
-                console.error("Failed to update status:", response.data.message);
-                setStoreErrMesg(response.data.message);
-            }
-        } catch (error) {
-            console.error("Error updating status:", error);
-        } finally {
-            setTimeout(() => {
-                setStoreMesg("");
-                setStoreErrMesg("");
-            }, 20000); // Clear messages after 1 minute 
-        }
-    };
-
-    const handleEdit = async () => {
-        try {
-            const response = await updateStore(editSupSrlno, { formData });
-            console.log(response);
-            console.log(response.data);
-            if (response.status === 200) {
-                setStoreMesg(response.data.message);
-                fetchStores();
-            } else {
-                console.error("Failed to update status:", response.data.message);
-                setStoreErrMesg(response.data.message);
-            }
-        } catch (error) {
-            console.error("Error updating status:", error);
-        } finally {
-            setTimeout(() => {
-                setStoreMesg("");
-                setStoreErrMesg("");
-            }, 20000); // Clear messages after 1 minute 
-        }
-    };
-
     const closeUserModal = () => {
         setModalOpen(false);
         setFormData({
@@ -216,7 +214,7 @@ function StoresPage() {
             <Box
                 sx={{ minWidth: "calc( 99vw - 18vw)", }}
             >
-                <HeaderPannel HeaderTitle="Manage Industries"
+                <HeaderPannel HeaderTitle="Manage Stores"
                     tableData={tableData}
                 // onDownloadCurrentList ={onDownloadxl}
                 />

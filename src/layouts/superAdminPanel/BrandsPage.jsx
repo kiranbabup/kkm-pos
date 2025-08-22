@@ -53,43 +53,6 @@ const BrandsPage = () => {
         }
     };
 
-    const columns = [
-        { field: "id", headerName: "ID", width: 80 },
-        { field: "created_on", headerName: "Created On", flex: 1 },
-        { field: "brand", headerName: "Brands Name", width: 180 },
-        {
-            field: "status",
-            headerName: "Status",
-            flex: 1,
-            renderCell: (params) => (
-                <Switch
-                    checked={params.row.status}
-                    onChange={() => toggleUsageStatus(params.row.brand_id, params.row.status)}
-                    color="primary"
-                />
-            )
-        },
-        {
-            field: "actions",
-            headerName: "Actions",
-            flex: 1,
-            sortable: false,
-            renderCell: (params) => (
-                <Button
-                    size="small"
-                    variant="contained"
-                    onClick={() => {
-                        setEditBranValue(params.row.brand);
-                        setEditBranSrlno(params.row.brand_id);
-                        setEditModalOpen(true);
-                    }}
-                >
-                    Edit
-                </Button>
-            )
-        }
-    ];
-
     const onClickAddBrand = async () => {
         // const handleSave = async () => {
         try {
@@ -121,7 +84,6 @@ const BrandsPage = () => {
             }, 20000);  // Clear messages after 20 seconds
         }
     };
-
 
     const toggleUsageStatus = async (id, currentStatus, brand) => {
         try {
@@ -165,6 +127,43 @@ const BrandsPage = () => {
         }
     }
 
+    const columns = [
+        { field: "id", headerName: "ID", width: 80 },
+        { field: "created_on", headerName: "Created On", flex: 1 },
+        { field: "brand", headerName: "Brands Name", width: 180 },
+        {
+            field: "status",
+            headerName: "Status",
+            flex: 1,
+            renderCell: (params) => (
+                <Switch
+                    checked={params.row.status}
+                    onChange={() => toggleUsageStatus(params.row.brand_id, params.row.status)}
+                    color="primary"
+                />
+            )
+        },
+        {
+            field: "actions",
+            headerName: "Actions",
+            flex: 1,
+            sortable: false,
+            renderCell: (params) => (
+                <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => {
+                        setEditBranValue(params.row.brand);
+                        setEditBranSrlno(params.row.brand_id);
+                        setEditModalOpen(true);
+                    }}
+                >
+                    Edit
+                </Button>
+            )
+        }
+    ];
+
     return (
         <Box sx={{
             width: "99vw",
@@ -186,7 +185,7 @@ const BrandsPage = () => {
             <Box
                 sx={{ minWidth: "calc( 99vw - 18vw)", }}
             >
-                <HeaderPannel HeaderTitle="Manage Industries"
+                <HeaderPannel HeaderTitle="Manage Brands"
                     tableData={tableData}
                 // onDownloadCurrentList ={onDownloadxl}
                 />

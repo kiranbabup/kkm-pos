@@ -63,6 +63,80 @@ function SuppliersPage() {
         }
     };
 
+    const handleSave = async () => {
+        try {
+            setLoadingSupplier(true);
+            setSupplierMesg("");
+            setSupplierErrMesg("");
+            // Send state slno and city name
+            const response = await createSupplier(formData);
+            console.log(response);
+            console.log(response.data);
+            if (response.status === 201) {
+                setModalOpen(false);
+                setSupplierMesg(response.data.message);
+                fetchSuppliers();
+            } else {
+                console.error("Failed to add Supplier:", response.data.message);
+                setSupplierErrMesg(response.data.message);
+            }
+        } catch (error) {
+            setSupplierErrMesg(error.response.data.message);
+            console.error("Failed to add Supplier:", error.response);
+        } finally {
+            setLoadingSupplier(false);
+            setTimeout(() => {
+                setSupplierMesg("");
+                setSupplierErrMesg("");
+            }, 20000);  // Clear messages after 20 seconds
+        }
+    };
+
+    const toggleUsageStatus = async (id, currentStatus) => {
+        try {
+            const newStatus = !currentStatus;
+            const response = await updateSupplier(id, { status: newStatus, });
+            console.log(response);
+            console.log(response.data);
+            if (response.status === 200) {
+                setSupplierMesg(response.data.message);
+                fetchSuppliers();
+            } else {
+                console.error("Failed to update status:", response.data.message);
+                setSupplierErrMesg(response.data.message);
+            }
+        } catch (error) {
+            console.error("Error updating status:", error);
+        } finally {
+            setTimeout(() => {
+                setSupplierMesg("");
+                setSupplierErrMesg("");
+            }, 20000); // Clear messages after 1 minute 
+        }
+    };
+
+    const handleEdit = async () => {
+        try {
+            const response = await updateSupplier(editSupSrlno, { formData });
+            console.log(response);
+            console.log(response.data);
+            if (response.status === 200) {
+                setSupplierMesg(response.data.message);
+                fetchSuppliers();
+            } else {
+                console.error("Failed to update status:", response.data.message);
+                setSupplierErrMesg(response.data.message);
+            }
+        } catch (error) {
+            console.error("Error updating status:", error);
+        } finally {
+            setTimeout(() => {
+                setSupplierMesg("");
+                setSupplierErrMesg("");
+            }, 20000); // Clear messages after 1 minute 
+        }
+    };
+
     const columns = [
         { field: "id", headerName: "ID", width: 80 },
         { field: "created_on", headerName: "Created On", flex: 1 },
@@ -115,81 +189,6 @@ function SuppliersPage() {
         }
     ];
 
-    const handleSave = async () => {
-        try {
-            setLoadingSupplier(true);
-            setSupplierMesg("");
-            setSupplierErrMesg("");
-            // Send state slno and city name
-            const response = await createSupplier(formData);
-            console.log(response);
-            console.log(response.data);
-            if (response.status === 201) {
-                setModalOpen(false);
-                setSupplierMesg(response.data.message);
-                fetchSuppliers();
-            } else {
-                console.error("Failed to add Supplier:", response.data.message);
-                setSupplierErrMesg(response.data.message);
-            }
-        } catch (error) {
-            setSupplierErrMesg(error.response.data.message);
-            console.error("Failed to add Supplier:", error.response);
-        } finally {
-            setLoadingSupplier(false);
-            setTimeout(() => {
-                setSupplierMesg("");
-                setSupplierErrMesg("");
-            }, 20000);  // Clear messages after 20 seconds
-        }
-    };
-
-
-    const toggleUsageStatus = async (id, currentStatus) => {
-        try {
-            const newStatus = !currentStatus;
-            const response = await updateSupplier(id, { status: newStatus, });
-            console.log(response);
-            console.log(response.data);
-            if (response.status === 200) {
-                setSupplierMesg(response.data.message);
-                fetchSuppliers();
-            } else {
-                console.error("Failed to update status:", response.data.message);
-                setSupplierErrMesg(response.data.message);
-            }
-        } catch (error) {
-            console.error("Error updating status:", error);
-        } finally {
-            setTimeout(() => {
-                setSupplierMesg("");
-                setSupplierErrMesg("");
-            }, 20000); // Clear messages after 1 minute 
-        }
-    };
-
-    const handleEdit = async () => {
-        try {
-            const response = await updateSupplier(editSupSrlno, { formData });
-            console.log(response);
-            console.log(response.data);
-            if (response.status === 200) {
-                setSupplierMesg(response.data.message);
-                fetchSuppliers();
-            } else {
-                console.error("Failed to update status:", response.data.message);
-                setSupplierErrMesg(response.data.message);
-            }
-        } catch (error) {
-            console.error("Error updating status:", error);
-        } finally {
-            setTimeout(() => {
-                setSupplierMesg("");
-                setSupplierErrMesg("");
-            }, 20000); // Clear messages after 1 minute 
-        }
-    };
-
     const closeUserModal = () => {
         setModalOpen(false);
         setFormData({
@@ -204,6 +203,7 @@ function SuppliersPage() {
         setEditSupSrlno(null);
         setFormType("");
     }
+
     return (
         <Box sx={{
             width: "99vw",
@@ -225,7 +225,7 @@ function SuppliersPage() {
             <Box
                 sx={{ minWidth: "calc( 99vw - 18vw)", }}
             >
-                <HeaderPannel HeaderTitle="Manage Industries"
+                <HeaderPannel HeaderTitle="Manage Suppliers"
                     tableData={tableData}
                 // onDownloadCurrentList ={onDownloadxl}
                 />

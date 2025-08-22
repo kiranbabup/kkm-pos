@@ -15,12 +15,16 @@ import FactoryIcon from '@mui/icons-material/Factory';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import GroupIcon from '@mui/icons-material/Group';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
-import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
 import ProductionQuantityLimitsIcon from '@mui/icons-material/ProductionQuantityLimits';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import InventoryTwoToneIcon from '@mui/icons-material/InventoryTwoTone';
+import Inventory2TwoToneIcon from '@mui/icons-material/Inventory2TwoTone';
+import WorkspacesIcon from '@mui/icons-material/Workspaces';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 
+// import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
 // import WorkIcon from '@mui/icons-material/Work';
 // import AssessmentIcon from '@mui/icons-material/Assessment';
 // import GroupsSharpIcon from '@mui/icons-material/GroupsSharp';
@@ -48,19 +52,28 @@ const LeftPannel = ({ HeaderTitle }) => {
     const navIcons = {
         "/super-admin": <DashboardIcon />,
         "/warehouse-admin": <DashboardIcon />,
-        "/store-admin": <DashboardIcon />,
+        "/store-manager": <DashboardIcon />,
         "/casher-panel": <DashboardIcon />,
         "/categories": <CategoryIcon />,
         "//suppliers": <BusinessIcon />,
         "/units": <ClassIcon />,
         "/stores": <FactoryIcon />,
         "/brands": <AssignmentTurnedInIcon />,
-        "/employee-payments": <AccountBalanceWalletIcon />,
         "/users_management": <GroupIcon />,
         "/products": <ShoppingBasketIcon />,
         "/add-to-main": <AddShoppingCartIcon />,
         "/add-store-products": <AddShoppingCartIcon />,
-
+        "/store-pendings": <ProductionQuantityLimitsIcon />,
+        "/store-recived-products": <ShoppingBagIcon />,
+        "/inventory-by-store": <Inventory2TwoToneIcon />,
+        "/confirm-store-inventory": <InventoryTwoToneIcon />,
+        "/add-store-combos": <WorkspacesIcon />,
+        "/store-inventory": <ShoppingCartIcon />,
+        "/billings": <ReceiptLongIcon />,
+        "/store-billings": <ReceiptLongIcon />,
+        "/display-combos": <ShoppingCartIcon />,
+        
+        // "/employee-payments": <AccountBalanceWalletIcon />,
         // "/manage-states": <EditLocationAltIcon />,
         // "/manage-services": <MiscellaneousServicesIcon />,
         // "/manage-posted-jobs": <WorkIcon />,
@@ -85,6 +98,7 @@ const LeftPannel = ({ HeaderTitle }) => {
             title: "Main",
             items: [
                 { label: "Dashboard", route: "/super-admin" },
+                { label: "Billings", route: "/billings" },
             ]
         },
         {
@@ -98,7 +112,7 @@ const LeftPannel = ({ HeaderTitle }) => {
             title: "Products Management",
             items: [
                 { label: "Main Inventory", route: "/products" },
-                { label: "Add to Main", route: "/add-to-main" },
+                { label: "Create Main Products", route: "/add-to-main" },
             ]
         },
         {
@@ -114,48 +128,62 @@ const LeftPannel = ({ HeaderTitle }) => {
             title: "Store Products",
             items: [
                 { label: "Add Store Products", route: "/add-store-products" },
+                { label: "Store Pendings", route: "/store-pendings" },
+                { label: "Confirm Store", route: "/confirm-store-inventory" },
+                { label: "Inventory by Store", route: "/inventory-by-store" },
             ]
         },
     ]
 
-    const warehouseAdminSections = [
-        {
-            title: "Main",
-            items: [
-                { label: "WHAdmin Dashboard", route: "/warehouse-admin" },
-            ]
-        },
-    ]
+    // const warehouseAdminSections = [
+    //     {
+    //         title: "Main",
+    //         items: [
+    //             { label: "WHAdmin Dashboard", route: "/warehouse-admin" },
+    //         ]
+    //     },
+    // ]
 
     const storeAdminSections = [
         {
             title: "Main",
             items: [
-                { label: "StoreAdmin Dashboard", route: "/store-admin" },
+                { label: "StoreAdmin Dashboard", route: "/store-manager" },
+                { label: "Received Products", route: "/store-recived-products" },
+                { label: "Store Inventory", route: "/store-inventory" },
+                { label: "Add Store Combos", route: "/add-store-combos" },
+                { label: "View Combos", route: "/display-combos" },
+                { label: "Billings", route: "/store-billings" },
             ]
         },
+        // {
+        //     title: "Combo Section",
+        //     items: [
+                // { label: "Inventory by Store", route: "/inventory-by-store" },
+            // ]
+        // },
     ]
 
-    const cashierSections = [
-        {
-            title: "Main",
-            items: [
-                { label: "Cashier Dashboard", route: "/casher-panel" },
-            ]
-        },
-    ]
+    // const cashierSections = [
+    //     {
+    //         title: "Main",
+    //         items: [
+    //             { label: "Cashier Dashboard", route: "/casher-panel" },
+    //         ]
+    //     },
+    // ]
 
     useEffect(() => {
         // console.log(user);
         if (user) {
             if (user.role === "admin") {
                 setSections(superAdminSections);
-            } else if (user.role === "warehouse") {
-                setSections(warehouseAdminSections);
+            // } else if (user.role === "warehouse") {
+            //     setSections(warehouseAdminSections);
             } else if (user.role === "store") {
                 setSections(storeAdminSections);
-            } else if (user.role === "casher") {
-                setSections(cashierSections);
+            // } else if (user.role === "casher") {
+            //     setSections(cashierSections);
             }
         } else {
             return;

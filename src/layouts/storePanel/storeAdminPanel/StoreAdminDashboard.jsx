@@ -5,7 +5,7 @@ import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { useEffect, useState } from "react";
 // import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer, BarChart, YAxis, XAxis, Bar } from "recharts";
 import CountCard from "../../../components/dashboard_components/CountCard";
-import { getDashboardStats } from "../../../services/api";
+// import { getDashboardStats } from "../../../services/api";
 import LocalMallIcon from '@mui/icons-material/LocalMall';
 import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 import CategoryRoundedIcon from '@mui/icons-material/CategoryRounded';
@@ -33,11 +33,11 @@ const StoreAdminDashboard = () => {
     // })
     //   .catch(() => setAllStores(0));
 
-    getDashboardStats().then(res => {
-      console.log(res.data);
-      setCounts(res.data || {});
-    })
-      .catch(() => setCounts({}));
+    // getDashboardStats().then(res => {
+    //   console.log(res.data);
+    //   setCounts(res.data || {});
+    // })
+    //   .catch(() => setCounts({}));
   }, []);
 
   const user = LsService.getItem(storageKey);
@@ -58,12 +58,12 @@ const StoreAdminDashboard = () => {
       Value: counts.totalProducts || 0,
       navpath: ""
     },
-    {
-      HeadTitle: "Total Users",
-      IconCompo: SupervisorAccountIcon,
-      Value: counts.activeUsers || 0,
-      navpath: ""
-    },
+    // {
+    //   HeadTitle: "Total Users",
+    //   IconCompo: SupervisorAccountIcon,
+    //   Value: counts.activeUsers || 0,
+    //   navpath: ""
+    // },
     {
       HeadTitle: "Total Customers",
       IconCompo: SupervisorAccountIcon,
@@ -76,30 +76,30 @@ const StoreAdminDashboard = () => {
       Value: counts.totalOrders || 0,
       navpath: ""
     },
-    {
-      HeadTitle: "Total Stores",
-      IconCompo: StoreIcon,
-      Value: counts.allStores || 0,
-      navpath: ""
-    },
-    {
-      HeadTitle: "Total Brands",
-      IconCompo: BrandingWatermarkRoundedIcon,
-      Value: counts.activeBrands || 0,
-      navpath: ""
-    },
-    {
-      HeadTitle: "Total Categories",
-      IconCompo: CategoryRoundedIcon,
-      Value: counts.activeCategories || 0,
-      navpath: ""
-    },
-    {
-      HeadTitle: "Total Suppliers",
-      IconCompo: SupervisorAccountIcon,
-      Value: counts.activeSuppliers || 0,
-      navpath: ""
-    },
+    // {
+    //   HeadTitle: "Total Stores",
+    //   IconCompo: StoreIcon,
+    //   Value: counts.allStores || 0,
+    //   navpath: ""
+    // },
+    // {
+    //   HeadTitle: "Total Brands",
+    //   IconCompo: BrandingWatermarkRoundedIcon,
+    //   Value: counts.activeBrands || 0,
+    //   navpath: ""
+    // },
+    // {
+    //   HeadTitle: "Total Categories",
+    //   IconCompo: CategoryRoundedIcon,
+    //   Value: counts.activeCategories || 0,
+    //   navpath: ""
+    // },
+    // {
+    //   HeadTitle: "Total Suppliers",
+    //   IconCompo: SupervisorAccountIcon,
+    //   Value: counts.activeSuppliers || 0,
+    //   navpath: ""
+    // },
     {
       HeadTitle: "Total Low Stock Products",
       IconCompo: BookmarkRemoveIcon,

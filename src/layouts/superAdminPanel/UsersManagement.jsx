@@ -5,6 +5,7 @@ import { Box, Button, Switch, Typography } from "@mui/material";
 import LeftPannel from "../../components/LeftPannel";
 import HeaderPannel from "../../components/HeaderPannel";
 import UserModal from "./superComponents/UserModal";
+import { onDownloadCurrentList } from "../../data/functions";
 
 function UsersManagement() {
     const [loading, setLoading] = useState(false);
@@ -30,6 +31,7 @@ function UsersManagement() {
         store_id: "",
     });
     const [stores, setStores] = useState([]);
+    const [errMsg, seterrMsg] = useState("");
 
     useEffect(() => {
         fetchUsers();
@@ -61,6 +63,194 @@ function UsersManagement() {
             setLoading(false);
         }
     };
+
+    const fetchStores = async () => {
+        try {
+            const res = await getAllStores();
+            console.log(res.data.stores);
+            console.log(res);
+
+            if (res.status === 200) {
+                setStores(res.data.stores); // assuming res.data is an array of stores
+            }
+        } catch (err) {
+            console.error("Error fetching stores:", err);
+        }
+    };
+
+    const usernameWrong = "User Name must contain 1cap, 1small, 1number, min char's of 8";
+    const passwordWrong = "Password must contain 1cap, 1small, 1number, min char's of 8";
+    const emailWrong = "Email must be in format abcd@gmail.com";
+    const existingUsername = "User Name already Exists";
+
+    const errors = [];
+
+    // ✅ Regex rules
+    const usernameRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+
+    const handleSave = async () => {
+        try {
+            setLoadingUser(true);
+            setUserMesg("");
+            setUserErrMesg("");
+            seterrMsg("");
+
+            // ✅ Check existing username
+            const existingUser = allUsers.find(
+                (usr) => usr.username.toLowerCase() === formData.username.toLowerCase()
+            );
+            if (existingUser) {
+                errors.push(existingUsername);
+            }
+
+            // ✅ Validate fields
+            if (!usernameRegex.test(formData.username)) {
+                errors.push(usernameWrong);
+            }
+            if (!passwordRegex.test(formData.password)) {
+                errors.push(passwordWrong);
+            }
+            if (!emailRegex.test(formData.email)) {
+                errors.push(emailWrong);
+            }
+
+            // ❌ If any errors, show and stop execution
+            if (errors.length > 0) {
+                seterrMsg(errors.join(" | "));
+                return;
+            }
+
+            // ✅ If all validations passed → create user
+            const response = await createUser(formData);
+
+            if (response.status === 201) {
+                setUserMesg(response.data.message);
+                closeUserModal();
+                fetchUsers();
+            } else {
+                setUserErrMesg(response.data.message);
+                seterrMsg(response.data.message);
+            }
+        } catch (error) {
+            setUserErrMesg(error.response?.data?.message || "Something went wrong");
+            console.error("Failed to add User:", error.response || error);
+        } finally {
+            setLoadingUser(false);
+            setTimeout(() => {
+                setUserMesg("");
+                setUserErrMesg("");
+                seterrMsg("");
+            }, 20000);
+        }
+    };
+
+    const toggleUsageStatus = async (id, currentStatus) => {
+        try {
+            const newStatus = !currentStatus;
+            const response = await updateUser(id, { is_active: newStatus, });
+            console.log(response);
+            console.log(response.data);
+            if (response.status === 200) {
+                setUserMesg(response.data.message);
+                fetchUsers();
+            } else {
+                console.error("Failed to update status:", response.data.message);
+                setUserErrMesg(response.data.message);
+            }
+        } catch (error) {
+            console.error("Error updating status:", error);
+        } finally {
+            setTimeout(() => {
+                setUserMesg("");
+                setUserErrMesg("");
+            }, 20000); // Clear messages after 1 minute 
+        }
+    };
+
+    const handleEdit = async () => {
+        try {
+            setLoadingUser(true);
+            console.log(formData);
+            setUserMesg("");
+            setUserErrMesg("");
+            seterrMsg("");
+
+            // ✅ Validate fields
+            if (!usernameRegex.test(formData.username)) {
+                errors.push(usernameWrong);
+            }
+            if (!passwordRegex.test(formData.password)) {
+                errors.push(passwordWrong);
+            }
+            if (!emailRegex.test(formData.email)) {
+                errors.push(emailWrong);
+            }
+
+            // ❌ If any errors, show and stop execution
+            if (errors.length > 0) {
+                seterrMsg(errors.join(" | "));
+                return;
+            }
+
+            const response = await updateUser(editusrSrlno, formData);
+            console.log(response);
+            // console.log(response.data);
+            if (response.status === 200) {
+                setUserMesg(response.data.message);
+                closeUserModal();
+                fetchUsers();
+            } else {
+                console.error("Failed to update status:", response.data.message);
+                setUserErrMesg(response.data.message);
+            }
+        } catch (error) {
+            setUserErrMesg(error.response?.data?.message || "Something went wrong");
+            console.error("Error updating status:", error);
+        } finally {
+            setLoadingUser(false);
+            setTimeout(() => {
+                setUserMesg("");
+                seterrMsg("");
+                setUserErrMesg("");
+            }, 20000); // Clear messages after 1 minute 
+        }
+    };
+
+    const handleChange = (field, value) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleStoreSelect = (storeId) => {
+        const id = Number(storeId);   // convert string to number
+        console.log("Selected storeId:", id);
+
+        const store = stores.find((s) => s.store_id === id);
+        console.log("Matched store:", store);
+
+        if (store) {
+            setFormData((prev) => ({
+                ...prev,
+                store_id: store.store_id,
+                store_code: store.code
+            }));
+        }
+    };
+
+    const closeUserModal = () => {
+        setModalOpen(false);
+        setFormData({
+            username: "",
+            password: "",
+            email: "",
+            store_code: "",
+            store_id: "",
+        });
+        setEditusrSrlno(null);
+        setFormType("");
+        seterrMsg("");
+    }
 
     const columns = [
         { field: "id", headerName: "ID", width: 80 },
@@ -111,130 +301,8 @@ function UsersManagement() {
         }
     ];
 
-    const fetchStores = async () => {
-        try {
-            const res = await getAllStores();
-            console.log(res.data.stores);
-            console.log(res);
-
-            if (res.status === 200) {
-                setStores(res.data.stores); // assuming res.data is an array of stores
-            }
-        } catch (err) {
-            console.error("Error fetching stores:", err);
-        }
-    };
-
-    const handleSave = async () => {
-        try {
-            setLoadingUser(true);
-            setUserMesg("");
-            setUserErrMesg("");
-            // Send state slno and city name
-            console.log(formData);
-            const response = await createUser(formData);
-            console.log(response);
-            console.log(response.data);
-            if (response.status === 201) {
-                setUserMesg(response.data.message);
-                fetchUsers();
-            } else {
-                console.error("Failed to add User:", response.data.message);
-                setUserErrMesg(response.data.message);
-            }
-        } catch (error) {
-            setUserErrMesg(error.response.data.message);
-            console.error("Failed to add User:", error.response);
-        } finally {
-            setLoadingUser(false);
-            closeUserModal();
-            setTimeout(() => {
-                setUserMesg("");
-                setUserErrMesg("");
-            }, 20000);  // Clear messages after 20 seconds
-        }
-    };
-
-    const toggleUsageStatus = async (id, currentStatus) => {
-        try {
-            const newStatus = !currentStatus;
-            const response = await updateUser(id, { is_active: newStatus, });
-            console.log(response);
-            console.log(response.data);
-            if (response.status === 200) {
-                setUserMesg(response.data.message);
-                fetchUsers();
-            } else {
-                console.error("Failed to update status:", response.data.message);
-                setUserErrMesg(response.data.message);
-            }
-        } catch (error) {
-            console.error("Error updating status:", error);
-        } finally {
-            setTimeout(() => {
-                setUserMesg("");
-                setUserErrMesg("");
-            }, 20000); // Clear messages after 1 minute 
-        }
-    };
-
-    const handleEdit = async () => {
-        try {
-            console.log(formData);
-            setUserMesg("");
-            setUserErrMesg("");
-            const response = await updateUser(editusrSrlno, formData);
-            console.log(response);
-            // console.log(response.data);
-            if (response.status === 200) {
-                setUserMesg(response.data.message);
-                fetchUsers();
-            } else {
-                console.error("Failed to update status:", response.data.message);
-                setUserErrMesg(response.data.message);
-            }
-        } catch (error) {
-            console.error("Error updating status:", error);
-        } finally {
-            closeUserModal();
-            setTimeout(() => {
-                setUserMesg("");
-                setUserErrMesg("");
-            }, 20000); // Clear messages after 1 minute 
-        }
-    };
-
-    const handleChange = (field, value) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
-    };
-
-    const handleStoreSelect = (storeId) => {
-        const id = Number(storeId);   // convert string to number
-        console.log("Selected storeId:", id);
-
-        const store = stores.find((s) => s.store_id === id);
-        console.log("Matched store:", store);
-
-        if (store) {
-            setFormData((prev) => ({
-                ...prev,
-                store_id: store.store_id,
-                store_code: store.code
-            }));
-        }
-    };
-
-    const closeUserModal = () => {
-        setModalOpen(false);
-        setFormData({
-            username: "",
-            password: "",
-            email: "",
-            store_code: "",
-            store_id: "",
-        });
-        setEditusrSrlno(null);
-        setFormType("");
+    const onDownloadxl = () => {
+        onDownloadCurrentList("UsersList", tableData);
     }
 
     return (
@@ -258,9 +326,9 @@ function UsersManagement() {
             <Box
                 sx={{ minWidth: "calc( 99vw - 18vw)", }}
             >
-                <HeaderPannel HeaderTitle="Manage Industries"
+                <HeaderPannel HeaderTitle="Manage Users"
                     tableData={tableData}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
                 <Box sx={{ width: "99%" }}>
 
@@ -315,6 +383,7 @@ function UsersManagement() {
                         handleChange={handleChange}
                         handleStoreSelect={handleStoreSelect}
                         stores={stores}
+                        errMsg={errMsg}
                     />
                     <TableComponent
                         tableData={tableData}
