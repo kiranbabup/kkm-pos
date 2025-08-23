@@ -42,6 +42,8 @@ function StoreRecivedProducts() {
     const fetchStoreProducts = async () => {
         try {
             console.log(storeId);
+            setTableData([]);
+            setRowCount(0);
             setLoading(true);
             const response = await getStoreDetailsbyId(storeId);
             console.log(response.data);
@@ -141,7 +143,7 @@ function StoreRecivedProducts() {
         },
         {
             field: "remarks_quantity",
-            headerName: "Issue Qty",
+            headerName: "Damage Qty",
             flex: 1,
             renderCell: (params) => (
                 <TextField
@@ -236,7 +238,7 @@ function StoreRecivedProducts() {
                         <DialogTitle>Confirm Verification</DialogTitle>
                         <DialogContent>
                             <p><strong>Remarks:</strong> {selectedRow?.remarks || "No remarks"}</p>
-                            <p><strong>Issue Quantity:</strong> {selectedRow?.remarks_quantity || "0"}</p>
+                            <p><strong>Damage Quantity:</strong> {selectedRow?.remarks_quantity || "0"}</p>
                         </DialogContent>
                         <DialogActions>
                             <Button

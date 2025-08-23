@@ -72,7 +72,7 @@ const LeftPannel = ({ HeaderTitle }) => {
         "/billings": <ReceiptLongIcon />,
         "/store-billings": <ReceiptLongIcon />,
         "/display-combos": <ShoppingCartIcon />,
-        
+
         // "/employee-payments": <AccountBalanceWalletIcon />,
         // "/manage-states": <EditLocationAltIcon />,
         // "/manage-services": <MiscellaneousServicesIcon />,
@@ -148,7 +148,7 @@ const LeftPannel = ({ HeaderTitle }) => {
         {
             title: "Main",
             items: [
-                { label: "StoreAdmin Dashboard", route: "/store-manager" },
+                { label: "Store Dashboard", route: "/store-manager" },
                 { label: "Received Products", route: "/store-recived-products" },
                 { label: "Store Inventory", route: "/store-inventory" },
                 { label: "Add Store Combos", route: "/add-store-combos" },

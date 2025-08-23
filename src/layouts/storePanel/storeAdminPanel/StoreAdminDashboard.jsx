@@ -5,7 +5,7 @@ import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { useEffect, useState } from "react";
 // import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer, BarChart, YAxis, XAxis, Bar } from "recharts";
 import CountCard from "../../../components/dashboard_components/CountCard";
-// import { getDashboardStats } from "../../../services/api";
+import { getDashboardStats } from "../../../services/api";
 import LocalMallIcon from '@mui/icons-material/LocalMall';
 import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 import CategoryRoundedIcon from '@mui/icons-material/CategoryRounded';
@@ -159,13 +159,13 @@ const StoreAdminDashboard = () => {
           mt: 1.5,
         }}
       >
-        <LeftPannel HeaderTitle="Store Admin Dashboard" />
+        <LeftPannel HeaderTitle="Store Manager" />
       </Box>
       <Box
         sx={{ minWidth: "calc( 99vw - 18vw)", ml: 1.5, }}
 
       >
-        <HeaderPannel HeaderTitle="Store Admin Dashboard" />
+        <HeaderPannel HeaderTitle="Store Manager" />
 
         {/* Body starts here */}
         <Box sx={{ width: "99%", mb: 4 }}>

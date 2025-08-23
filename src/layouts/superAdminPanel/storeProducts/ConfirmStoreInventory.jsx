@@ -40,9 +40,11 @@ function ConfirmStoreInventory() {
 
     const fetchStoreProducts = async () => {
         try {
+            setTableData([]);
+            setRowCount(0);
             setLoading(true);
             const response = await getStoreDetailsbyId(storeId);
-            console.log("Store Products:", response.data);
+            console.log("Store Products:", response.data.data);
 
             const mappedData = response.data.data
                 .filter((prod) => prod.status !== "Pending")
@@ -60,6 +62,7 @@ function ConfirmStoreInventory() {
                     products_name: prod.pos_product?.products_name,
                     products_price: prod.pos_product?.products_price,
                     discount_price: prod.pos_product?.discount_price,
+                    product_id: prod.pos_product?.products_id,
                     barcode: prod.pos_product?.barcode,
                     batch_number: prod.pos_product?.batch_number,
                     expiry_date: prod.pos_product?.expiry_date?.slice(0, 10),
@@ -91,7 +94,7 @@ function ConfirmStoreInventory() {
             const finalQuantity = row.quantity - row.remarks_quantity;
 
             const payload = {
-                product_id: row.id,
+                product_id: row.product_id,
                 store_id: row.store_id,
                 quantity: finalQuantity,
                 added_on: row.added_on,
@@ -136,7 +139,7 @@ function ConfirmStoreInventory() {
         { field: "expiry_date", headerName: "Expiry Date", flex: 1 },
         { field: "quantity", headerName: "Qty Sent", flex: 1 },
         { field: "remarks", headerName: "Remarks", flex: 1 },
-        { field: "remarks_quantity", headerName: "Issue Qty", flex: 1 },
+        { field: "remarks_quantity", headerName: "Damage Qty", flex: 1 },
         {
             field: "status",
             headerName: "Status",
@@ -171,7 +174,6 @@ function ConfirmStoreInventory() {
             ),
         }
     ];
-
 
     return (
         <Box sx={{
@@ -261,7 +263,7 @@ function ConfirmStoreInventory() {
                         <DialogTitle>Confirm Verification</DialogTitle>
                         <DialogContent>
                             <p><strong>Quantity:</strong> {selectedRow?.quantity || "0"}</p>
-                            <p><strong>Issue Quantity:</strong> {selectedRow?.remarks_quantity || "0"}</p>
+                            <p><strong>Damage Quantity:</strong> {selectedRow?.remarks_quantity || "0"}</p>
                             <p><strong>Change Quantity to:</strong> {selectedRow?.quantity || "0"} - {selectedRow?.remarks_quantity || "0"} = {selectedRow?.quantity - selectedRow?.remarks_quantity}</p>
                         </DialogContent>
                         <DialogActions>

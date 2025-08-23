@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, TextField, IconButton, Paper, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, Divider, Popover } from "@mui/material";
+import { Box, Typography, Button, TextField, IconButton, Paper, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, Divider, Popover, InputAdornment } from "@mui/material";
 import MuiAlert from '@mui/material/Alert';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -12,6 +12,7 @@ import { get_store_product_details, get_customer_data, billing } from "../../../
 import LsService, { storageKey } from "../../../services/localstorage";
 import { useNavigate } from "react-router-dom";
 import { AccentButton, GlassCard, PaymentButton } from "../../../data/functions";
+import CloseIcon from "@mui/icons-material/Close";
 
 const CashierDashboard = () => {
   // Payment method state
@@ -43,14 +44,35 @@ const CashierDashboard = () => {
 
   // Track if combo is purchased for this customer
   const [isComboPurchased, setIsComboPurchased] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [userLoginStatus, setuserLoginStatus] = useState("");
+  const [storeId, setStoreId] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   // Get storeId and user info from localStorage
-  const user = JSON.parse(localStorage.getItem(storageKey) || "{}");
-  const storeId = user.store_id;
-  const userId = user.user_id;
+  // const userLoginStatus = LsService.getItem(storageKey);
+
+  useEffect(() => {
+    const fetchStoreId = async () => {
+      try {
+        const userLogin = LsService.getItem(storageKey);
+        console.log(userLogin);
+        if (userLogin) {
+          setuserLoginStatus(userLogin);
+          setStoreId(userLogin.store_id);
+          setUserId(userLogin.user_id);
+        } else {
+          console.log("Invalid store_code, no store found");
+        }
+      } catch (error) {
+        console.error("Error fetching stores:", error);
+        // console.log("Failed to fetch store details");
+      }
+    };
+    fetchStoreId();
+  }, []);
+
   const navigate = useNavigate();
-  const userLoginStatus = LsService.getItem(storageKey);
-  const [anchorEl, setAnchorEl] = useState(null);
 
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -72,8 +94,11 @@ const CashierDashboard = () => {
     const fetchProducts = async () => {
       if (!storeId) return;
       try {
-        const res = await get_store_product_details(search.trim(), storeId);
-        const prods = res.data.products || res.data || [];
+        const trimmedSearch = search.trim();
+        const res = await get_store_product_details(trimmedSearch, storeId);
+        console.log(res.data);
+
+        const prods = res.data.products || [];
         setProducts(prods);
         // Show dropdown for name search, not barcode
         if (search && !/^\d{4,}$/.test(search.trim())) {
@@ -191,16 +216,16 @@ const CashierDashboard = () => {
   //     ).toFixed(2)
   //   : 0;
 
-const totalGst =
-  cart && cart.length > 0
-    ? cart.reduce((sum, item) => {
+  const totalGst =
+    cart && cart.length > 0
+      ? cart.reduce((sum, item) => {
         const price = parseFloat(item.discount_price || 0);
         const qty = parseFloat(item.quantity || 0);
         const gstRate = parseFloat(item.gst || 0); // percentage
         const gstAmount = (price * qty * gstRate) / 100;
         return sum + gstAmount;
       }, 0).toFixed(2)
-    : "0.00";
+      : "0.00";
 
 
 
@@ -316,6 +341,16 @@ const totalGst =
     }
   };
 
+  const onCalChange = () => {
+    const paid = parseFloat(amount) || 0;
+    const total = (!hasComboItem && !isExistingCustomer) ? mrpTotal : subTotal;
+    const change = paid - total;
+    setChangeAmount(change >= 0 ? change.toFixed(2) : "0.00");
+    setTimeout(() => {
+      setChangeAmount("")
+    }, 20000);
+  }
+
   return (
     <Box sx={{
       minHeight: "100vh",
@@ -427,7 +462,7 @@ const totalGst =
               }}
               onClick={(e) => handleAvatarClick(e)}
             >
-              {userLoginStatus.role.slice(0, 1).toUpperCase()}
+              {userLoginStatus ? userLoginStatus.role.slice(0, 1).toUpperCase() : ""}
             </Box>
             <Popover
               open={open}
@@ -543,194 +578,202 @@ const totalGst =
                     }
                   }
                   }
+                >
+                  {/* Barcode */}
+                  < Box sx={{ width: 100, textAlign: "center", fontSize: 15, fontWeight: 500 }}>
+                    {item.barcode || item.products_id}
+                  </Box>
+                  {/* Title */}
+                  < Box sx={{ flex: 2, fontWeight: 500, fontSize: 16, pl: 1, textAlign: "center" }}>
+                    {item.products_name}
+                  </Box>
+                  {/* Price */}
+                  <Box sx={{ width: 90, textAlign: "center", fontWeight: 600 }}>
+                    ₹{item.discount_price || item.products_price}
+                  </Box>
+                  {/* MRP */}
+                  <Box sx={{ width: 90, textAlign: "center", textDecoration: "line-through" }}>
+                    {item.discount_price ? `₹${item.products_price}` : ""}
+                  </Box>
+                  {/* GST */}
+                  <Box sx={{ width: 90, textAlign: "center", }}>
+                    {item.gst ? `${item.gst}%` : `0%`}
+                  </Box>
+                  {/* Qty controls */}
+                  <Box sx={{
+                    width: 100,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 0,
+                    background: "#f5f7fa",
+                    borderRadius: 2,
+                    py: 0.5
+                  }}>
+                    {/* "-" button: disabled for combo */}
+                    <IconButton
+                      size="small"
+                      onClick={() => handleQtyChange(item.products_id, -1)}
+                      sx={{ p: 0.5, minWidth: 24 }}
+                      disabled={item.is_combo}
                     >
-                    {/* Barcode */ }
-                    < Box sx={{ width: 100, textAlign: "center", fontSize: 15, fontWeight: 500 }}>
-                  {item.barcode || item.products_id}
+                      <RemoveIcon fontSize="small" />
+                    </IconButton>
+                    {/* Quantity display */}
+                    <Typography sx={{ mx: 0.5, minWidth: 22, textAlign: "center", fontWeight: 600, fontSize: 16, color: "black" }}>
+                      {item.quantity}
+                    </Typography>
+                    {/* "+" button: disabled for combo and when at max */}
+                    <IconButton
+                      size="small"
+                      onClick={() => handleQtyChange(item.products_id, 1)}
+                      sx={{ p: 0.5, minWidth: 24 }}
+                      disabled={
+                        item.is_combo ||
+                        item.quantity >= (item.quantity_available ?? item.quantity)
+                      }
+                    >
+                      <AddIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                  {/* Total */}
+                  <Box sx={{ width: 90, textAlign: "center", fontWeight: 600 }}>
+                    ₹{((item.discount_price || item.products_price) * item.quantity).toFixed(2)}
+                  </Box>
+                  {/* Combo */}
+                  <Box sx={{ width: 90, textAlign: "center", fontWeight: 600 }}>
+                    {item.is_combo ? "Yes" : "No"}
+                  </Box>
+                  {/* Actions */}
+                  <Box sx={{ width: 120, display: "flex", justifyContent: "center", gap: 1 }}>
+                    <IconButton color="error" size="small" onClick={() => handleRemove(item.products_id)}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
                 </Box>
-                  {/* Title */ }
-                < Box sx = {{ flex: 2, fontWeight: 500, fontSize: 16, pl: 1, textAlign: "center" }}>
-            {item.products_name}
-          </Box>
-          {/* Price */}
-          <Box sx={{ width: 90, textAlign: "center", fontWeight: 600 }}>
-            ₹{item.discount_price || item.products_price}
-          </Box>
-          {/* MRP */}
-          <Box sx={{ width: 90, textAlign: "center", textDecoration: "line-through" }}>
-            {item.discount_price ? `₹${item.products_price}` : ""}
-          </Box>
-          {/* GST */}
-          <Box sx={{ width: 90, textAlign: "center", }}>
-            {item.gst ? `${item.gst}%` : `0%`}
-          </Box>
-          {/* Qty controls */}
-          <Box sx={{
-            width: 100,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 0,
-            background: "#f5f7fa",
-            borderRadius: 2,
-            py: 0.5
-          }}>
-            {/* "-" button: disabled for combo */}
-            <IconButton
-              size="small"
-              onClick={() => handleQtyChange(item.products_id, -1)}
-              sx={{ p: 0.5, minWidth: 24 }}
-              disabled={item.is_combo}
-            >
-              <RemoveIcon fontSize="small" />
-            </IconButton>
-            {/* Quantity display */}
-            <Typography sx={{ mx: 0.5, minWidth: 22, textAlign: "center", fontWeight: 600, fontSize: 16, color:"black" }}>
-              {item.quantity}
-            </Typography>
-            {/* "+" button: disabled for combo and when at max */}
-            <IconButton
-              size="small"
-              onClick={() => handleQtyChange(item.products_id, 1)}
-              sx={{ p: 0.5, minWidth: 24 }}
-              disabled={
-                item.is_combo ||
-                item.quantity >= (item.quantity_available ?? item.quantity)
-              }
-            >
-              <AddIcon fontSize="small" />
-            </IconButton>
-          </Box>
-          {/* Total */}
-          <Box sx={{ width: 90, textAlign: "center", fontWeight: 600 }}>
-            ₹{((item.discount_price || item.products_price) * item.quantity).toFixed(2)}
-          </Box>
-          {/* Combo */}
-          <Box sx={{ width: 90, textAlign: "center", fontWeight: 600 }}>
-            {item.is_combo ? "Yes" : "No"}
-          </Box>
-          {/* Actions */}
-          <Box sx={{ width: 120, display: "flex", justifyContent: "center", gap: 1 }}>
-            <IconButton color="error" size="small" onClick={() => handleRemove(item.products_id)}>
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Box>
-      </Box>
-      ))
+              ))
             )}
-    </Box>
+          </Box>
 
-          {/* Transaction Summary and Actions */ }
-  {
-    cart.length !== 0 &&
-    <Box sx={{ mb: 2 }}>
-      <GlassCard sx={{ background: "rgba(0,114,255,0.07)", mb: 2 }}>
-        <Typography fontWeight={600}>Transaction Summary</Typography>
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
-          <Typography>Sub Total</Typography>
-          <Typography>₹{subTotal.toFixed(2)}</Typography>
-        </Box>
-        {/* <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+          {/* Transaction Summary and Actions */}
+          {
+            cart.length !== 0 &&
+            <Box sx={{ mb: 2 }}>
+              <GlassCard sx={{ background: "rgba(0,114,255,0.07)", mb: 2 }}>
+                <Typography fontWeight={600}>Transaction Summary</Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+                  <Typography>Sub Total</Typography>
+                  <Typography>₹{subTotal.toFixed(2)}</Typography>
+                </Box>
+                {/* <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Typography>SGST</Typography>
           <Typography>₹0.00</Typography>
         </Box> */}
-        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography>GST</Typography>
-          <Typography>₹{totalGst}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2, fontWeight: 700, fontSize: 18 }}>
-          <Typography>Grand Total</Typography>
-          <Typography color="#0072ff">₹{subTotal.toFixed(2)}</Typography>
-        </Box>
-      </GlassCard>
-    </Box>
-  }
-  {
-    cart.length !== 0 &&
-    <Box sx={{ mt: 2, display: "flex", alignItems: "center", gap: 2 }}>
-      <AccentButton
-        sx={{ flex: 2, background: "linear-gradient(90deg, #ff5858 0%, #f09819 100%)" }}
-        startIcon={<ShoppingCartIcon />}
-        onClick={() => {setBillingOpen(true); console.log(cart);
-        }}
-      >
-        Checkout
-      </AccentButton>
-    </Box>
-  }
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography>GST</Typography>
+                  <Typography>₹{totalGst}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2, fontWeight: 700, fontSize: 18 }}>
+                  <Typography>Grand Total</Typography>
+                  <Typography color="#0072ff">₹{subTotal.toFixed(2)}</Typography>
+                </Box>
+              </GlassCard>
+            </Box>
+          }
+          {
+            cart.length !== 0 &&
+            <Box sx={{ mt: 2, display: "flex", alignItems: "center", gap: 2 }}>
+              <AccentButton
+                sx={{ flex: 2, background: "linear-gradient(90deg, #ff5858 0%, #f09819 100%)" }}
+                startIcon={<ShoppingCartIcon />}
+                onClick={() => {
+                  setBillingOpen(true); console.log(cart);
+                }}
+              >
+                Checkout
+              </AccentButton>
+            </Box>
+          }
         </GlassCard >
 
-  {/* Right: Calculator & Payment */ }
-  < GlassCard sx = {{ flex: 0.8, minWidth: 0, maxWidth: 300, alignItems: "center", gap: 2 }}>
-    {/* Calculator input */ }
-    < TextField
-value = { amount }
-onChange = { handleAmountChange }
-variant = "standard"
-size = "medium"
-inputProps = {{
-  style: { fontSize: 28, textAlign: "center", color: "#0072ff", fontWeight: 700 },
-  inputMode: "decimal",
-    pattern: "[0-9.]*"
-}}
-sx = {{ width: 200, mb: 2 }}
+        {/* Right: Calculator & Payment */}
+        < GlassCard sx={{ flex: 0.8, minWidth: 0, maxWidth: 300, alignItems: "center", gap: 2 }}>
+          {/* Calculator input */}
+
+          < TextField
+            value={amount}
+            onChange={handleAmountChange}
+            variant="standard"
+            size="medium"
+            inputProps={{
+              style: { fontSize: 28, textAlign: "center", color: "#0072ff", fontWeight: 700 },
+              inputMode: "decimal",
+              pattern: "[0-9.]*"
+            }}
+            sx={{ width: 200, mb: 2 }}
+            InputProps={{
+              endAdornment: (
+                amount && ( // show only if there is text
+                  <InputAdornment position="end">
+                    <IconButton size="small" onClick={() => setAmount("")}>
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              ),
+            }}
           />
-{/* Calculator UI */ }
-<Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 70px)", gap: 2 }}>
-  {[7, 8, 9, 4, 5, 6, 1, 2, 3, 0, "00", "."].map((val, idx) => (
-    <Button
-      key={idx}
-      variant="contained"
-      sx={{
-        borderRadius: 2,
-        fontSize: 22,
-        background: "#e0e7ff",
-        color: "#222",
-        fontWeight: 700,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-      }}
-      onClick={() => handleAmountInput(val)}
-    >
-      {val}
-    </Button>
-  ))}
-</Box>
+          {/* Calculator UI */}
+          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 70px)", gap: 2 }}>
+            {[7, 8, 9, 4, 5, 6, 1, 2, 3, 0, "00", "."].map((val, idx) => (
+              <Button
+                key={idx}
+                variant="contained"
+                sx={{
+                  borderRadius: 2,
+                  fontSize: 22,
+                  background: "#e0e7ff",
+                  color: "#222",
+                  fontWeight: 700,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                }}
+                onClick={() => handleAmountInput(val)}
+              >
+                {val}
+              </Button>
+            ))}
+          </Box>
 
-{/* Calculate Change button */ }
-<AccentButton
-  fullWidth
-  sx={{ mt: 2 }}
-  onClick={() => {
-    const paid = parseFloat(amount) || 0;
-    const total = (!hasComboItem && !isExistingCustomer) ? mrpTotal : subTotal;
-    const change = paid - total;
-    setChangeAmount(change >= 0 ? change.toFixed(2) : "0.00");
-  }}
->
-  Calculate Change
-</AccentButton>
+          {/* Calculate Change button */}
+          <AccentButton
+            fullWidth
+            sx={{ mt: 2 }}
+            onClick={() => onCalChange()}
+          >
+            Calculate Change
+          </AccentButton>
 
-{/* Show the change below the button */ }
-{
-  changeAmount !== "" && (
-    <Typography sx={{ mt: 2, fontWeight: 700, fontSize: 20 }}>
-      Change: <span style={{ color: "#0072ff" }}>₹ {changeAmount}</span>
-    </Typography>
-  )
-}
-{/* Only show Cash payment method */ }
-<Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-  <PaymentButton
-    startIcon={<AttachMoneyIcon />}
-    selected={paymentMethod === "cash"}
-    onClick={() => setPaymentMethod("cash")}
-  >Cash</PaymentButton>
-</Box>
+          {/* Show the change below the button */}
+          {
+            changeAmount !== "" && (
+              <Typography sx={{ mt: 2, fontWeight: 700, fontSize: 20 }}>
+                Change: <span style={{ color: "#0072ff" }}>₹ {changeAmount}</span>
+              </Typography>
+            )
+          }
+          {/* Only show Cash payment method */}
+          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+            <PaymentButton
+              startIcon={<AttachMoneyIcon />}
+              selected={paymentMethod === "cash"}
+              onClick={() => setPaymentMethod("cash")}
+            >Cash</PaymentButton>
+          </Box>
         </GlassCard >
       </Box >
 
-  {/* Billing Dialog */ }
-  < Dialog open = { billingOpen } onClose = {() => setBillingOpen(false)} maxWidth = "sm" fullWidth >
+      {/* Billing Dialog */}
+      < Dialog open={billingOpen} onClose={() => setBillingOpen(false)} maxWidth="sm" fullWidth >
         <DialogTitle>Billing</DialogTitle>
         <DialogContent>
           <TextField
@@ -824,22 +867,22 @@ sx = {{ width: 200, mb: 2 }}
         </DialogActions>
       </Dialog >
 
-  {/* Snackbar for billing success */ }
-  < Snackbar
-open = { successSnackbarOpen }
-autoHideDuration = { 4000}
-onClose = {() => setSuccessSnackbarOpen(false)}
-anchorOrigin = {{ vertical: 'bottom', horizontal: 'center' }}
+      {/* Snackbar for billing success */}
+      < Snackbar
+        open={successSnackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSuccessSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-  <MuiAlert
-    elevation={6}
-    variant="filled"
-    onClose={() => setSuccessSnackbarOpen(false)}
-    severity="success"
-    sx={{ width: '100%' }}
-  >
-    Billing successful!
-  </MuiAlert>
+        <MuiAlert
+          elevation={6}
+          variant="filled"
+          onClose={() => setSuccessSnackbarOpen(false)}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
+          Billing successful!
+        </MuiAlert>
       </Snackbar >
     </Box >
   );

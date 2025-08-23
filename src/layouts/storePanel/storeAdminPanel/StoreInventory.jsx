@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAllStores, getStoreDetailsbyId, updateRemarks } from "../../../services/api";
+import { getAllStores, getStoreDetailsbyId, getStoreInvtryDetails, updateRemarks } from "../../../services/api";
 import TableComponent from "../../../components/TableComponent";
 import { Box, Button, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import LeftPannel from "../../../components/LeftPannel";
@@ -45,12 +45,14 @@ function StoreInventory() {
 
         const fetchStoreProducts = async () => {
             try {
+                setTableData([]);
+                setRowCount(0);
                 setLoading(true);
-                const response = await getStoreDetailsbyId(storeId);
+                const response = await getStoreInvtryDetails(storeId);
                 console.log("Store Products:", response.data);
 
                 const mappedData = response.data.data
-                    .filter((prod) => prod.status === "Confirmed")
+                    // .filter((prod) => prod.status === "Confirmed")
                     .map((prod, index) => ({
                         id: index + 1,
                         confirmed_on: prod.confirmed_on?.slice(0, 10),

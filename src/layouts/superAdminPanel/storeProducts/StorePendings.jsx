@@ -37,6 +37,8 @@ function StorePendings() {
 
         const fetchStoreProducts = async () => {
             try {
+                setTableData([]);
+                setRowCount(0);
                 setLoading(true);
                 const response = await getStoreDetailsbyId(storeId);
                 console.log("Store Products:", response.data);

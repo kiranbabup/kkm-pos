@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAllStores, getStoreDetailsbyId } from "../../../services/api";
+import { getAllStores, getStoreInvtryDetails } from "../../../services/api";
 import TableComponent from "../../../components/TableComponent";
 import { Box, Button, Typography, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import LeftPannel from "../../../components/LeftPannel";
@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 function InventoryByStore() {
     const [loading, setLoading] = useState(false);
     const [stores, setStores] = useState([]);
-    const [storeId, setStoreId] = useState([]);
+    const [storeId, setStoreId] = useState("");
     const [tableData, setTableData] = useState([]);
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -37,12 +37,14 @@ function InventoryByStore() {
 
         const fetchStoreProducts = async () => {
             try {
+                setTableData([]);
+                setRowCount(0);
                 setLoading(true);
-                const response = await getStoreDetailsbyId(storeId);
+                const response = await getStoreInvtryDetails(storeId);
                 console.log("Store Products:", response.data);
 
                 const mappedData = response.data.data
-                    .filter((prod) => prod.status === "Confirmed")
+                    // .filter((prod) => prod.status === "Confirmed")
                     .map((prod, index) => ({
                         id: index + 1,
                         confirmed_on: prod.confirmed_on?.slice(0, 10),

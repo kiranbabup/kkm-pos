@@ -16,8 +16,8 @@ export const login = (data) =>
   api.post('login_pos', data);
 
 // fetch API's
-// export const getDashboardStats = () =>
-//   api.get('dashboard_stats');
+export const getDashboardStats = () =>
+  api.get('dashboard_stats');
 
 export const getAllCategories = () =>
   api.get('get_all_categories')
@@ -90,6 +90,9 @@ export const createStoreProducts = (data) =>
   api.post('crete_store_products', data)
 
 export const getStoreDetailsbyId = (storeid) =>
+  api.get(`get_dummy_store_details/${storeid}`)
+
+export const getStoreInvtryDetails = (storeid) =>
   api.get(`get_store_details/${storeid}`)
 
 export const updateRemarks = (id, data) =>
