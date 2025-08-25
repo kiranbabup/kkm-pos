@@ -6,6 +6,7 @@ import LeftPannel from "../../components/LeftPannel";
 import HeaderPannel from "../../components/HeaderPannel";
 import CategoryIcon from '@mui/icons-material/Category';
 import EditModalComp from "../../components/EditModalComp";
+import * as XLSX from "xlsx";
 
 function CategoriesPage() {
     const [loading, setLoading] = useState(false);
@@ -54,7 +55,7 @@ function CategoriesPage() {
         }
     };
 
-        const onClickAddCategory = async () => {
+    const onClickAddCategory = async () => {
         try {
             setLoadingCategory(true);
             setCategoryMesg("");
@@ -199,6 +200,19 @@ function CategoriesPage() {
         }
     ];
 
+    const onDownloadxl = () => {
+        if (tableData.length === 0) {
+            alert("No Catigories data available to download.");
+            return;
+        }
+        // onDownloadCurrentList("UsersList", tableData);
+        const exportData = tableData.map(({ id, category_id, status, is_active, ...rest }) => rest); // remove 'id' if not needed
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "CatigoriesList");
+        XLSX.writeFile(workbook, "CatigoriesList.xlsx");
+    }
+
     return (
         <Box sx={{
             width: "99vw",
@@ -222,7 +236,7 @@ function CategoriesPage() {
             >
                 <HeaderPannel HeaderTitle="Manage Categories"
                     tableData={tableData}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
                 <Box sx={{ width: "99%" }}>
 

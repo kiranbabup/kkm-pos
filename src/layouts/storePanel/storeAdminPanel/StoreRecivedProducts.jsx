@@ -5,6 +5,7 @@ import { Box, Button, Typography, TextField, Dialog, DialogTitle, DialogContent,
 import LeftPannel from "../../../components/LeftPannel";
 import HeaderPannel from "../../../components/HeaderPannel";
 import LsService, { storageKey } from "../../../services/localstorage";
+import * as XLSX from "xlsx";
 
 function StoreRecivedProducts() {
     const [loading, setLoading] = useState(false);
@@ -16,6 +17,8 @@ function StoreRecivedProducts() {
     const [productErrMesg, setProductErrMesg] = useState("");
     const [openVerifyModal, setOpenVerifyModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
+    const [remarks, setRemarks] = useState("");
+    const [remarksQty, setRemarksQty] = useState("");
 
     // Get store_id from localStorage
     useEffect(() => {
@@ -129,8 +132,13 @@ function StoreRecivedProducts() {
             renderCell: (params) => (
                 <TextField
                     size="small"
-                    value={params.row.remarks || ""}
+                    value={params.row.remarks ?? ""}
                     disabled={params.row.status === "Checked"}
+                    onKeyDown={(e) => {
+                        if (e.key === " ") {
+                            e.stopPropagation(); // ✅ Prevent DataGrid from hijacking spacebar
+                        }
+                    }}
                     onChange={(e) =>
                         setTableData((prev) =>
                             prev.map((item) =>
@@ -145,23 +153,47 @@ function StoreRecivedProducts() {
             field: "remarks_quantity",
             headerName: "Damage Qty",
             flex: 1,
-            renderCell: (params) => (
-                <TextField
-                    size="small"
-                    type="number"
-                    disabled={params.row.status === "Checked"}
-                    value={params.row.remarks_quantity ?? ""}
-                    onChange={(e) =>
-                        setTableData((prev) =>
-                            prev.map((item) =>
-                                item.id === params.row.id
-                                    ? { ...item, remarks_quantity: e.target.value }
-                                    : item
-                            )
-                        )
-                    }
-                />
-            ),
+            renderCell: (params) => {
+                const maxQty = params.row.quantity ?? 0;
+                return (
+                    <TextField
+                        size="small"
+                        type="number"
+                        disabled={params.row.status === "Checked"}
+                        inputProps={{
+                            min: 1,
+                            max: maxQty,
+                            step: 1,
+                            onKeyDown: (e) => {
+                                // prevent e, +, -, . and 0
+                                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+                            },
+                        }}
+                        value={params.row.remarks_quantity ?? ""}
+                        onChange={(e) => {
+                            let val = e.target.value;
+
+                            // disallow 0 or negative
+                            if (val === "0" || val.startsWith("0")) {
+                                val = "";
+                            }
+
+                            // enforce max quantity
+                            if (Number(val) > maxQty) {
+                                val = maxQty.toString();
+                            }
+
+                            setTableData((prev) =>
+                                prev.map((item) =>
+                                    item.id === params.row.id ? { ...item, remarks_quantity: val } : item
+                                )
+                            );
+                        }}
+                    />
+                );
+            },
         },
         {
             field: "status",
@@ -190,13 +222,26 @@ function StoreRecivedProducts() {
                         setSelectedRow(params.row);
                         setOpenVerifyModal(true);
                     }}
-                    disabled={params.row.status === "Checked"}
+                    disabled={params.row.status === "Checked" || !params.row.remarks || !params.row.remarks_quantity}
                 >
                     Verify
                 </Button>
             ),
         }
     ];
+
+    const onDownloadxl = () => {
+        if (tableData.length === 0) {
+            alert("No Users data available to download.");
+            return;
+        }
+        // onDownloadCurrentList("UsersList", tableData);
+        const exportData = tableData.map(({ id, rowId, ...rest }) => rest); // remove 'id' if not needed
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "StoreReceivedProducts");
+        XLSX.writeFile(workbook, "StoreReceivedProducts.xlsx");
+    }
 
     return (
         <Box sx={{ width: "99vw", height: "94vh", backgroundColor: "white", display: "flex" }}>
@@ -206,7 +251,9 @@ function StoreRecivedProducts() {
             </Box>
 
             <Box sx={{ minWidth: "calc( 99vw - 18vw)" }}>
-                <HeaderPannel HeaderTitle="Received Products to store" tableData={tableData} />
+                <HeaderPannel HeaderTitle="Received Products to store" tableData={tableData}
+                    onDownloadCurrentList={onDownloadxl}
+                />
                 <Box sx={{ width: "99%" }}>
                     {(productMesg || productErrMesg) &&
                         <Box

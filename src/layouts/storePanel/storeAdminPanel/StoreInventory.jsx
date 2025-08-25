@@ -5,6 +5,7 @@ import { Box, Button, Typography, TextField, Dialog, DialogTitle, DialogContent,
 import LeftPannel from "../../../components/LeftPannel";
 import HeaderPannel from "../../../components/HeaderPannel";
 import LsService, { storageKey } from "../../../services/localstorage";
+import * as XLSX from "xlsx";
 
 function StoreInventory() {
     const [loading, setLoading] = useState(false);
@@ -95,8 +96,41 @@ function StoreInventory() {
         { field: "barcode", headerName: "Barcode", flex: 1 },
         { field: "batch_number", headerName: "Batch Number", flex: 1 },
         { field: "expiry_date", headerName: "Expiry Date", flex: 1 },
-        { field: "quantity", headerName: "Quantity", flex: 1 },
+        {
+            field: "quantity", headerName: "Quantity", flex: 1,
+            renderCell: (params) => {
+                const qty = Number(params.value);
+
+                let color = "black"; // default
+                if (qty === 0) {
+                    color = "red";
+                } else if (qty <= 5) {
+                    color = "orange";
+                } else {
+                    color = "green";
+                }
+
+                return (
+                    <span style={{ color, fontWeight: "bold" }}>
+                        {qty}
+                    </span>
+                );
+            },
+        },
     ];
+
+    const onDownloadxl = () => {
+            if (tableData.length === 0) {
+                alert("No Users data available to download.");
+                return;
+            }
+            // onDownloadCurrentList("UsersList", tableData);
+            const exportData = tableData.map(({ id,  ...rest }) => rest); // remove 'id' if not needed
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "StoreInventory");
+            XLSX.writeFile(workbook, "StoreInventory.xlsx");
+        }
 
     return (
         <Box sx={{ width: "99vw", height: "94vh", backgroundColor: "white", display: "flex" }}>
@@ -106,7 +140,7 @@ function StoreInventory() {
             </Box>
 
             <Box sx={{ minWidth: "calc( 99vw - 18vw)" }}>
-                <HeaderPannel HeaderTitle="Store Inventory" tableData={tableData} />
+                <HeaderPannel HeaderTitle="Store Inventory" tableData={tableData} onDownloadCurrentList={onDownloadxl}/>
 
                 <Box sx={{ width: "99%" }}>
                     {(productMesg || productErrMesg) &&

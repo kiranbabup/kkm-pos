@@ -5,6 +5,7 @@ import { Box, Button, Switch, Typography } from "@mui/material";
 import LeftPannel from "../../components/LeftPannel";
 import HeaderPannel from "../../components/HeaderPannel";
 import StoreModal from "./superComponents/StoreModal";
+import * as XLSX from "xlsx";
 
 function StoresPage() {
     const [loading, setLoading] = useState(false);
@@ -193,6 +194,16 @@ function StoresPage() {
         setEditSupSrlno(null);
         setFormType("");
     }
+
+    const onDownloadxl = () => {
+        // onDownloadCurrentList("UsersList", tableData);
+        const exportData = tableData.map(({ id, store_id, created_at, updated_at, ...rest }) => rest); // remove 'id' if not needed
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "StoresList");
+        XLSX.writeFile(workbook, "StoresList.xlsx");
+    }
+
     return (
         <Box sx={{
             width: "99vw",
@@ -216,7 +227,7 @@ function StoresPage() {
             >
                 <HeaderPannel HeaderTitle="Manage Stores"
                     tableData={tableData}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
                 <Box sx={{ width: "99%" }}>
 

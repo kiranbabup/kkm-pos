@@ -5,6 +5,7 @@ import { Box, Button, Typography, FormControl, InputLabel, Select, MenuItem, Dia
 import LeftPannel from "../../../components/LeftPannel";
 import HeaderPannel from "../../../components/HeaderPannel";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 
 function ConfirmStoreInventory() {
     const [loading, setLoading] = useState(false);
@@ -137,9 +138,27 @@ function ConfirmStoreInventory() {
         { field: "barcode", headerName: "Barcode", flex: 1 },
         { field: "batch_number", headerName: "Batch Number", flex: 1 },
         { field: "expiry_date", headerName: "Expiry Date", flex: 1 },
-        { field: "quantity", headerName: "Qty Sent", flex: 1 },
+        { field: "quantity", headerName: "Qty Sent", flex: 1, align:"center" },
         { field: "remarks", headerName: "Remarks", flex: 1 },
-        { field: "remarks_quantity", headerName: "Damage Qty", flex: 1 },
+        {
+            field: "remarks_quantity", headerName: "Damage Qty", flex: 1, align:"center",
+            renderCell: (params) => {
+                const qty = Number(params.value);
+
+                let color = "black"; // default
+                if (qty === 0) {
+                    color = "green";
+                } else {
+                    color = "red";
+                }
+
+                return (
+                    <span style={{ color, fontWeight: "bold" }}>
+                        {qty}
+                    </span>
+                );
+            },
+        },
         {
             field: "status",
             headerName: "Status",
@@ -175,6 +194,23 @@ function ConfirmStoreInventory() {
         }
     ];
 
+    const onDownloadxl = () => {
+        if (storeId.length === 0) {
+            alert("Please select a store to download data.");
+            return;
+        }
+        if (tableData.length === 0) {
+            alert("No data available to download.");
+            return;
+        }
+
+        const exportData = tableData.map(({ id,rowId, store_id,added_on,product_id, ...rest }) => rest); // remove 'id' if not needed
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "ConfirmStoreInventory");
+        XLSX.writeFile(workbook, "ConfirmStoreInventory.xlsx");
+    }
+
     return (
         <Box sx={{
             width: "99vw",
@@ -198,7 +234,7 @@ function ConfirmStoreInventory() {
             >
                 <HeaderPannel HeaderTitle="Confirm Store Inventory"
                     tableData={tableData}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
 
                 <Box sx={{ width: "99%" }}>

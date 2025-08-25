@@ -5,6 +5,7 @@ import { Box, Button, Switch, Typography } from "@mui/material";
 import LeftPannel from "../../components/LeftPannel";
 import HeaderPannel from "../../components/HeaderPannel";
 import UnitModal from "./superComponents/UnitModal";
+import * as XLSX from "xlsx";
 
 const UnitsPage = () => {
     const [loading, setLoading] = useState(false);
@@ -186,6 +187,19 @@ const UnitsPage = () => {
         setFormType("");
     }
 
+    const onDownloadxl = () => {
+        if (tableData.length === 0) {
+            alert("No Units data available to download.");
+            return;
+        }
+        // onDownloadCurrentList("UsersList", tableData);
+        const exportData = tableData.map(({ id, unit_id, created_on, status, is_active, conversion_factor, is_base_unit, ...rest }) => rest); // remove 'id' if not needed
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "UnitsList");
+        XLSX.writeFile(workbook, "UnitsList.xlsx");
+    }
+
     return (
         <Box sx={{
             width: "99vw",
@@ -209,7 +223,7 @@ const UnitsPage = () => {
             >
                 <HeaderPannel HeaderTitle="Manage Units"
                     tableData={tableData}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
                 <Box sx={{ width: "99%" }}>
 

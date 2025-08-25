@@ -159,8 +159,8 @@ const LeftPannel = ({ HeaderTitle }) => {
         // {
         //     title: "Combo Section",
         //     items: [
-                // { label: "Inventory by Store", route: "/inventory-by-store" },
-            // ]
+        // { label: "Inventory by Store", route: "/inventory-by-store" },
+        // ]
         // },
     ]
 
@@ -178,12 +178,12 @@ const LeftPannel = ({ HeaderTitle }) => {
         if (user) {
             if (user.role === "admin") {
                 setSections(superAdminSections);
-            // } else if (user.role === "warehouse") {
-            //     setSections(warehouseAdminSections);
+                // } else if (user.role === "warehouse") {
+                //     setSections(warehouseAdminSections);
             } else if (user.role === "store") {
                 setSections(storeAdminSections);
-            // } else if (user.role === "casher") {
-            //     setSections(cashierSections);
+                // } else if (user.role === "casher") {
+                //     setSections(cashierSections);
             }
         } else {
             return;
@@ -203,6 +203,16 @@ const LeftPannel = ({ HeaderTitle }) => {
         setOpenSection(getSectionForRoute(location.pathname) || (sections[0]?.title ?? ""));
     }, [location.pathname, sections]);
 
+    const onHandleNav = () => {
+        if (user.role === "admin") {
+            navigate("/super-admin");
+        } else if (user.role === "store") {
+            navigate("/store-manager");
+        } else {
+            navigate("/login");
+        }
+    }
+
     return (
         <Box sx={{
             width: "15vw",
@@ -215,7 +225,7 @@ const LeftPannel = ({ HeaderTitle }) => {
             p: 2,
         }}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 2, cursor: "pointer" }}
-            // onClick={() => navigate("/admin-db")}
+            onClick={() => onHandleNav()}
             >
                 <img src={logo} alt="Logo" style={{ width: "3rem", height: "3rem", borderRadius: "50%", marginRight: "10px" }} />
                 <Typography variant="subtitle1" fontWeight="bold">{HeaderTitle}</Typography>
@@ -233,7 +243,7 @@ const LeftPannel = ({ HeaderTitle }) => {
                             userSelect: "none"
                         }}
                         onClick={() => setOpenSection(openSection === section.title ? "" : section.title)}
-                        // onClick={() => setOpenSection(section.title)}
+                    // onClick={() => setOpenSection(section.title)}
                     >
                         <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
                             {section.title}

@@ -7,6 +7,7 @@ import LsService, { storageKey } from "../../../../services/localstorage";
 import TablePagination from "@mui/material/TablePagination";
 import { getStoreCombosbyid } from "../../../../services/api";
 import HeaderPannel from "../../../../components/HeaderPannel";
+import * as XLSX from "xlsx";
 
 function Row({ combo }) {
     const [open, setOpen] = useState(false);
@@ -141,6 +142,24 @@ function DisplayCombos() {
         }
     }, [storeId]);
 
+
+
+    const onDownloadxl = () => {
+        const exportData = combos.map(({ id, pos_combo_products, combo_id, created_on, updated_on, combo_gst, created_by, updated_by, store_id, ...rest }) => ({
+            ...rest,
+            Products: pos_combo_products
+                ? pos_combo_products
+                    .map((prod) => `${prod.products_name} (₹${prod.price})`)
+                    .join(", ")
+                : "",
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Store_Combos");
+        XLSX.writeFile(workbook, "Store_Combos.xlsx");
+    }
+
     return (
         <Box sx={{
             width: "99vw",
@@ -164,7 +183,7 @@ function DisplayCombos() {
             >
                 <HeaderPannel HeaderTitle="View Combos"
                     tableData={combos}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
 
                 <Box sx={{ width: "99%" }}>

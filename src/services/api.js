@@ -4,7 +4,7 @@ import axios from 'axios'
 
 // live in below
 export const baseURL = 'https://apiroutekkmartapp.kkmartonline.com/'
-// export const baseURL = 'http://192.168.0.103:1431/'
+// export const baseURL = 'http://192.168.0.101:1431/'
 
 const api = axios.create({
   baseURL,
@@ -17,7 +17,10 @@ export const login = (data) =>
 
 // fetch API's
 export const getDashboardStats = () =>
-  api.get('dashboard_stats');
+  api.get('get_dashboard_statastics');
+
+export const getStoreDashboardStats = (storeid) =>
+  api.get(`get_store_dashboard_statastics/${storeid}`)
 
 export const getAllCategories = () =>
   api.get('get_all_categories')

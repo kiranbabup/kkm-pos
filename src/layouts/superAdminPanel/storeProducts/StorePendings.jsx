@@ -5,6 +5,7 @@ import { Box, Button, Typography, FormControl, InputLabel, Select, MenuItem } fr
 import LeftPannel from "../../../components/LeftPannel";
 import HeaderPannel from "../../../components/HeaderPannel";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 
 function StorePendings() {
     const [loading, setLoading] = useState(false);
@@ -87,7 +88,7 @@ function StorePendings() {
         { field: "barcode", headerName: "Barcode", flex: 1 },
         { field: "batch_number", headerName: "Batch Number", flex: 1 },
         { field: "expiry_date", headerName: "Expiry Date", flex: 1 },
-        { field: "quantity", headerName: "Quantity Sent", flex: 1 },
+        { field: "quantity", headerName: "Quantity Sent", flex: 1, align:"center" },
         {
             field: "status",
             headerName: "Status",
@@ -105,6 +106,22 @@ function StorePendings() {
         },
     ];
 
+    const onDownloadxl = () => {
+        if (storeId.length === 0) {
+            alert("Please select a store to download data.");
+            return;
+        }
+        if (tableData.length === 0) {
+            alert("No data available to download.");
+            return;
+        }
+
+        const exportData = tableData.map(({ id, ...rest }) => rest); // remove 'id' if not needed
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "StorePendings");
+        XLSX.writeFile(workbook, "StorePendings.xlsx");
+    }
 
     return (
         <Box sx={{
@@ -129,7 +146,7 @@ function StorePendings() {
             >
                 <HeaderPannel HeaderTitle="View Store Transportation Status"
                     tableData={tableData}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
 
                 <Box sx={{ width: "99%" }}>

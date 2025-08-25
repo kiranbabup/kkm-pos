@@ -5,7 +5,7 @@ import { Box, Button, Switch, Typography } from "@mui/material";
 import LeftPannel from "../../components/LeftPannel";
 import HeaderPannel from "../../components/HeaderPannel";
 import UserModal from "./superComponents/UserModal";
-import { onDownloadCurrentList } from "../../data/functions";
+import * as XLSX from "xlsx";
 
 function UsersManagement() {
     const [loading, setLoading] = useState(false);
@@ -302,7 +302,16 @@ function UsersManagement() {
     ];
 
     const onDownloadxl = () => {
-        onDownloadCurrentList("UsersList", tableData);
+        if (tableData.length === 0) {
+            alert("No Users data available to download.");
+            return;
+        }
+        // onDownloadCurrentList("UsersList", tableData);
+        const exportData = tableData.map(({ id, user_id, password, createdAt, updatedAt, is_active, store_id, last_login, ...rest }) => rest); // remove 'id' if not needed
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "UsersList");
+        XLSX.writeFile(workbook, "UsersList.xlsx");
     }
 
     return (

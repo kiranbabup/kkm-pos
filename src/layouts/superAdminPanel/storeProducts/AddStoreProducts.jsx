@@ -40,6 +40,7 @@ function AddStoreProducts() {
 
     const handleStoreChange = (e) => {
         setFormData((prev) => ({ ...prev, store_id: e.target.value }));
+        console.log(formData);
     };
 
     const handleProductChange = (index, name, value) => {
@@ -85,7 +86,7 @@ function AddStoreProducts() {
 
             const response = await createStoreProducts(payload);
             console.log(response);
-            
+
             if (response.status === 200) {
                 setProductMesg(response.data.message);
             } else {
@@ -159,147 +160,168 @@ function AddStoreProducts() {
                                 ))}
                             </Select>
                         </FormControl>
+                        {
+                            formData.store_id &&
+                            <>
+                                {/* Dynamic Product Rows */}
+                                {formData.products.map((p, index) => {
+                                    // get available quantity for selected product
+                                    const selectedProduct = mainProducts.find(
+                                        (mp) => mp.products_id === p.product_id
+                                    );
+                                    const availableQty = selectedProduct
+                                        ? selectedProduct.quantity
+                                        : 0;
 
-                        {/* Dynamic Product Rows */}
-                        {formData.products.map((p, index) => {
-                            // get available quantity for selected product
-                            const selectedProduct = mainProducts.find(
-                                (mp) => mp.products_id === p.product_id
-                            );
-                            const availableQty = selectedProduct
-                                ? selectedProduct.quantity
-                                : 0;
+                                    // exclude already selected products
+                                    const selectedIds = formData.products
+                                        .map((pr) => pr.product_id)
+                                        .filter((id, i) => i !== index);
 
-                            // exclude already selected products
-                            const selectedIds = formData.products
-                                .map((pr) => pr.product_id)
-                                .filter((id, i) => i !== index);
+                                    const filteredProducts = mainProducts.filter(
+                                        (mp) => !selectedIds.includes(mp.products_id)
+                                    );
 
-                            const filteredProducts = mainProducts.filter(
-                                (mp) => !selectedIds.includes(mp.products_id)
-                            );
+                                    return (
+                                        <Box
+                                            key={index}
+                                            sx={{
+                                                mb: 2,
+                                                border: "1px solid #ddd",
+                                                borderRadius: "8px",
+                                                p: 2,
+                                            }}
+                                        >
+                                            <Grid container spacing={2}>
+                                                <Grid item size={4}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel>Products</InputLabel>
+                                                        <Select
+                                                            value={p.product_id}
+                                                            onChange={(e) =>
+                                                                handleProductChange(
+                                                                    index,
+                                                                    "product_id",
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                            disabled={loading}
+                                                        >
+                                                            {filteredProducts.map((u) => (
+                                                                <MenuItem
+                                                                    key={u.products_id}
+                                                                    value={u.products_id}
+                                                                >
+                                                                    {u.products_name}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid>
 
-                            return (
+                                                <Grid item size={2} sx={{ display: "flex", alignItems: "center" }}>
+                                                    <Typography sx={{ color: "grey" }}>Available Quantity: <strong style={{ color: "black" }}>{availableQty}</strong></Typography>
+                                                </Grid>
+
+                                                <Grid item size={2}>
+                                                    <TextField
+                                                        fullWidth
+                                                        label="Send Quantity"
+                                                        type="number"
+                                                        inputProps={{
+                                                            min: 1,
+                                                            max: availableQty,
+                                                            step: 1,
+                                                            onKeyDown: (e) => {
+                                                                // prevent e, +, -, . and 0 at first position
+                                                                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                                                    e.preventDefault();
+                                                                }
+                                                            },
+                                                        }}
+                                                        value={p.quantity}
+                                                        onChange={(e) => {
+                                                            let val = e.target.value;
+
+                                                            // disallow 0 or negative values
+                                                            if (val === "0" || val.startsWith("0")) {
+                                                                val = "";
+                                                            }
+
+                                                            // enforce max quantity
+                                                            if (Number(val) > availableQty) {
+                                                                val = availableQty.toString();
+                                                            }
+
+                                                            handleProductChange(index, "quantity", val);
+                                                        }}
+                                                        disabled={!p.product_id || loading || availableQty === 0}
+                                                    />
+
+                                                </Grid>
+
+                                                <Grid item size={4} sx={{ display: "flex" }}>
+                                                    <Button
+                                                        color="error"
+                                                        onClick={() => handleRemove(index)}
+                                                        disabled={formData.products.length === 1}
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                </Grid>
+                                            </Grid>
+                                        </Box>
+                                    );
+                                })}
+
+                                {/* Add More Button */}
+                                {formData.products.length < mainProducts.length && (
+                                    <Button
+                                        variant="outlined"
+                                        onClick={handleAddMore}
+                                        disabled={loading || formData.products.some(p => !p.product_id)}
+                                    >
+                                        Add More
+                                    </Button>
+                                )}
+
+                                {/* Action Buttons */}
                                 <Box
-                                    key={index}
                                     sx={{
-                                        mb: 2,
-                                        border: "1px solid #ddd",
-                                        borderRadius: "8px",
-                                        p: 2,
+                                        mt: 2,
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
                                     }}
                                 >
-                                    <Grid container spacing={2}>
-                                        <Grid item size={4}>
-                                            <FormControl fullWidth>
-                                                <InputLabel>Products</InputLabel>
-                                                <Select
-                                                    value={p.product_id}
-                                                    onChange={(e) =>
-                                                        handleProductChange(
-                                                            index,
-                                                            "product_id",
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    disabled={loading}
-                                                >
-                                                    {filteredProducts.map((u) => (
-                                                        <MenuItem
-                                                            key={u.products_id}
-                                                            value={u.products_id}
-                                                        >
-                                                            {u.products_name}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
-                                        </Grid>
-
-                                        <Grid item size={2} sx={{display:"flex", alignItems:"center"}}>
-                                            {/* <TextField
-                                                fullWidth
-                                                label="Available Quantity"
-                                                type="number"
-                                                value={availableQty}
-                                                disabled
-                                            /> */}
-                                            <Typography sx={{color:"grey"}}>Available Quantity: <strong style={{color:"black"}}>{availableQty}</strong></Typography>
-                                        </Grid>
-
-                                        <Grid item size={2}>
-                                            <TextField
-                                                fullWidth
-                                                label="Send Quantity"
-                                                type="number"
-                                                inputProps={{ min: 1, max: availableQty }}
-                                                value={p.quantity}
-                                                onChange={(e) =>
-                                                    handleProductChange(index, "quantity", e.target.value)
-                                                }
-                                                disabled={!p.product_id || loading}
-                                            />
-                                        </Grid>
-
-                                        <Grid item size={4} sx={{ display: "flex" }}>
-                                            <Button
-                                                color="error"
-                                                onClick={() => handleRemove(index)}
-                                                disabled={formData.products.length === 1}
-                                            >
-                                                Remove
-                                            </Button>
-                                        </Grid>
-                                    </Grid>
+                                    <Button variant="outlined" color="error" onClick={onClear}
+                                        disabled={loading || (!formData.products[0].product_id && !formData.products[0].quantity)}
+                                    >
+                                        Clear
+                                    </Button>
+                                    <Box>
+                                        {productMesg && (
+                                            <Typography sx={{ color: "green", fontSize: "0.9rem" }}>
+                                                {productMesg}
+                                            </Typography>
+                                        )}
+                                        {productErrMesg && (
+                                            <Typography sx={{ color: "red", fontSize: "0.9rem" }}>
+                                                {productErrMesg}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                    <Button
+                                        variant="contained"
+                                        color="success"
+                                        onClick={handleCreateProduct}
+                                        disabled={loading || formData.products.some(p => !p.product_id || !p.quantity)}
+                                    >
+                                        {loading ? "Adding..." : "Add Product"}
+                                    </Button>
                                 </Box>
-                            );
-                        })}
-
-                        {/* Add More Button */}
-                        {formData.products.length < mainProducts.length && (
-                            <Button
-                                variant="outlined"
-                                onClick={handleAddMore}
-                                disabled={loading}
-                            >
-                                Add More
-                            </Button>
-                        )}
-
-                        {/* Action Buttons */}
-                        <Box
-                            sx={{
-                                mt: 2,
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                            }}
-                        >
-                            <Button variant="outlined" color="error" onClick={onClear}>
-                                Clear
-                            </Button>
-                            <Box>
-                                {productMesg && (
-                                    <Typography sx={{ color: "green", fontSize: "0.9rem" }}>
-                                        {productMesg}
-                                    </Typography>
-                                )}
-                                {productErrMesg && (
-                                    <Typography sx={{ color: "red", fontSize: "0.9rem" }}>
-                                        {productErrMesg}
-                                    </Typography>
-                                )}
-                            </Box>
-                            <Button
-                                variant="contained"
-                                color="success"
-                                onClick={handleCreateProduct}
-                                disabled={loading}
-                            >
-                                {loading ? "Adding..." : "Add Product"}
-                            </Button>
-                        </Box>
-
+                            </>
+                        }
                     </Box>
                 </Box>
             </Box>

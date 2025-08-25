@@ -7,6 +7,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import LsService, { storageKey } from "../../../services/localstorage";
 import TablePagination from "@mui/material/TablePagination";
+import * as XLSX from "xlsx";
 
 function Row({ order }) {
     const [open, setOpen] = useState(false);
@@ -21,8 +22,8 @@ function Row({ order }) {
                     </IconButton>
                 </TableCell>
                 <TableCell>{order.invoice_number}</TableCell>
-                <TableCell>{order.customerDetails?.customerName}</TableCell>
-                <TableCell>{order.customerDetails?.customerMobile}</TableCell>
+                <TableCell>{order.customerDetails === null ? "N/A" : order.customerDetails?.customerName}</TableCell>
+                <TableCell>{order.customerDetails === null ? order.customerPhone : order.customerDetails?.customerMobile}</TableCell>
                 <TableCell>{order.order_date} {order.order_time}</TableCell>
                 <TableCell>{order.paymentMethod}</TableCell>
                 <TableCell>₹{order.total}</TableCell>
@@ -42,7 +43,6 @@ function Row({ order }) {
                                     <TableRow>
                                         <TableCell>Barcode</TableCell>
                                         <TableCell>Name</TableCell>
-                                        <TableCell>Description</TableCell>
                                         <TableCell align="right">Qty</TableCell>
                                         <TableCell align="right">Price</TableCell>
                                         <TableCell align="right">GST</TableCell>
@@ -53,7 +53,6 @@ function Row({ order }) {
                                         <TableRow key={idx}>
                                             <TableCell>{item.barcode}</TableCell>
                                             <TableCell>{item.name}</TableCell>
-                                            <TableCell>{item.description}</TableCell>
                                             <TableCell align="right">{item.quantity}</TableCell>
                                             <TableCell align="right">₹{item.price}</TableCell>
                                             <TableCell align="right">{item.gst}%</TableCell>
@@ -165,6 +164,37 @@ function StoreBillings() {
         }
     }, [userId]);
 
+    const onDownloadxl = () => {
+        if (orders.length === 0) {
+            alert("No billing data available to download.");
+            return;
+        }
+
+        // Flatten each order + its cart
+        const exportData = orders.flatMap((order) =>
+            order.cart.map((item) => ({
+                Invoice_No: order.invoice_number,
+                Customer_Name: order.customerDetails?.customerName || "",
+                Mobile: order.customerDetails?.customerMobile || "",
+                customerPhone: order.customerPhone,
+                Order_Date: `${order.order_date} ${order.order_time}`,
+                Payment_Method: order.paymentMethod,
+                Cashier: order.user_name,
+                Product_Barcode: item.barcode,
+                Product_Name: item.name,
+                Quantity: item.quantity,
+                Price: item.price,
+                GST: item.gst,
+                Order_Total: order.total,
+            }))
+        );
+
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Billings");
+        XLSX.writeFile(workbook, "Billings.xlsx");
+    }
+
     return (
         <Box sx={{
             width: "99vw",
@@ -188,7 +218,7 @@ function StoreBillings() {
             >
                 <HeaderPannel HeaderTitle="View Billings"
                     tableData={orders}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
 
                 <Box sx={{ width: "99%" }}>

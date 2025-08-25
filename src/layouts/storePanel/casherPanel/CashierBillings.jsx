@@ -22,8 +22,8 @@ function Row({ order }) {
                     </IconButton>
                 </TableCell>
                 <TableCell>{order.invoice_number}</TableCell>
-                <TableCell>{order.customerDetails?.customerName}</TableCell>
-                <TableCell>{order.customerDetails?.customerMobile}</TableCell>
+                <TableCell>{order.customerDetails === null ? "N/A" : order.customerDetails?.customerName}</TableCell>
+                <TableCell>{order.customerDetails === null ? order.customerPhone : order.customerDetails?.customerMobile}</TableCell>
                 <TableCell>{order.order_date} {order.order_time}</TableCell>
                 <TableCell>{order.paymentMethod}</TableCell>
                 <TableCell>₹{order.total}</TableCell>
@@ -43,7 +43,6 @@ function Row({ order }) {
                                     <TableRow>
                                         <TableCell>Barcode</TableCell>
                                         <TableCell>Name</TableCell>
-                                        <TableCell>Description</TableCell>
                                         <TableCell align="right">Qty</TableCell>
                                         <TableCell align="right">Price</TableCell>
                                         <TableCell align="right">GST</TableCell>
@@ -54,7 +53,6 @@ function Row({ order }) {
                                         <TableRow key={idx}>
                                             <TableCell>{item.barcode}</TableCell>
                                             <TableCell>{item.name}</TableCell>
-                                            <TableCell>{item.description}</TableCell>
                                             <TableCell align="right">{item.quantity}</TableCell>
                                             <TableCell align="right">₹{item.price}</TableCell>
                                             <TableCell align="right">{item.gst}%</TableCell>
@@ -268,7 +266,7 @@ function CashierBillings() {
                         </Popover>
                     </Box>
                 </Box>
-                
+
                 <TableContainer component={Paper}>
                     <Table>
                         <TableHead>

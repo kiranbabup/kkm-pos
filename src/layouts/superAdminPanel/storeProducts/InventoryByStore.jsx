@@ -5,6 +5,7 @@ import { Box, Button, Typography, FormControl, InputLabel, Select, MenuItem } fr
 import LeftPannel from "../../../components/LeftPannel";
 import HeaderPannel from "../../../components/HeaderPannel";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 
 function InventoryByStore() {
     const [loading, setLoading] = useState(false);
@@ -90,6 +91,22 @@ function InventoryByStore() {
         { field: "quantity", headerName: "Quantity Available", flex: 1 },
     ];
 
+    const onDownloadxl = () => {
+        if (storeId.length === 0) {
+            alert("Please select a store to download data.");
+            return;
+        }
+        if (tableData.length === 0) {
+            alert("No data available to download.");
+            return;
+        }
+
+        const exportData = tableData.map(({ id, ...rest }) => rest); // remove 'id' if not needed
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "StoreInventory");
+        XLSX.writeFile(workbook, "StoreInventory.xlsx");
+    }
 
     return (
         <Box sx={{
@@ -114,7 +131,7 @@ function InventoryByStore() {
             >
                 <HeaderPannel HeaderTitle="View Store Final Inventory"
                     tableData={tableData}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
 
                 <Box sx={{ width: "99%" }}>

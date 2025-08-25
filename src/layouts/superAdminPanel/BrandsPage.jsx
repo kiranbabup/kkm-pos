@@ -5,6 +5,7 @@ import { Box, Button, Switch, TextField, Typography } from "@mui/material";
 import LeftPannel from "../../components/LeftPannel";
 import HeaderPannel from "../../components/HeaderPannel";
 import EditModalComp from "../../components/EditModalComp";
+import * as XLSX from "xlsx";
 
 const BrandsPage = () => {
     const [loading, setLoading] = useState(false);
@@ -164,6 +165,19 @@ const BrandsPage = () => {
         }
     ];
 
+    const onDownloadxl = () => {
+        if (tableData.length === 0) {
+            alert("No Bands data available to download.");
+            return;
+        }
+        // onDownloadCurrentList("UsersList", tableData);
+        const exportData = tableData.map(({ id, brand_id, logo, status, created_on, is_active, updated_on, ...rest }) => rest); // remove 'id' if not needed
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "BandsList");
+        XLSX.writeFile(workbook, "BandsList.xlsx");
+    }
+
     return (
         <Box sx={{
             width: "99vw",
@@ -187,7 +201,7 @@ const BrandsPage = () => {
             >
                 <HeaderPannel HeaderTitle="Manage Brands"
                     tableData={tableData}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
                 <Box sx={{ width: "99%" }}>
 

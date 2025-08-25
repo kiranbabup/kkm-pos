@@ -38,17 +38,17 @@ const CustomeRoutes = () => {
       <Route element={<ProtectedRoute loggedinUserRole="admin" />}>
         <Route path="/super-admin" element={<SuperAdminDashboard />} />
 
+        <Route path="/billings" element={<Billings />} />
         <Route path="/users_management" element={<UsersManagement />} />
         <Route path="/stores" element={<StoresPage />} />
-        <Route path="/billings" element={<Billings />} />
+
+        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/add-to-main" element={<CreateMainProducts />} />
 
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/suppliers" element={<SuppliersPage />} />
         <Route path="/brands" element={<BrandsPage />} />
         <Route path="/units" element={<UnitsPage />} />
-
-        <Route path="/products" element={<ProductsPage />} />
-        <Route path="/add-to-main" element={<CreateMainProducts />} />
 
         <Route path="/add-store-products" element={<AddStoreProducts />} />
         <Route path="/store-pendings" element={<StorePendings />} />

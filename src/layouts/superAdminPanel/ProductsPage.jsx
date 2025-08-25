@@ -6,6 +6,7 @@ import LeftPannel from "../../components/LeftPannel";
 import HeaderPannel from "../../components/HeaderPannel";
 import { useNavigate } from "react-router-dom";
 import EditProductsModal from "./superComponents/EditProducts";
+import * as XLSX from "xlsx";
 
 function ProductsPage() {
     const [loading, setLoading] = useState(false);
@@ -134,7 +135,27 @@ function ProductsPage() {
         { field: "products_name", headerName: "Products Name", width: 180 },
         { field: "products_price", headerName: "Products Price", flex: 1 },
         { field: "discount_price", headerName: "Discount Price", flex: 1 },
-        { field: "quantity", headerName: "Quantity", flex: 1 },
+        {
+            field: "quantity", headerName: "Quantity", flex: 1,
+            renderCell: (params) => {
+                const qty = Number(params.value);
+
+                let color = "black"; // default
+                if (qty === 0) {
+                    color = "red";
+                } else if (qty <= params.row.qty_alert) {
+                    color = "orange";
+                } else {
+                    color = "green";
+                }
+
+                return (
+                    <span style={{ color, fontWeight: "bold" }}>
+                        {qty}
+                    </span>
+                );
+            },
+        },
         {
             field: "status",
             headerName: "Status",
@@ -167,6 +188,40 @@ function ProductsPage() {
         }
     ];
 
+    const onDownloadxl = () => {
+        if (!tableData || tableData.length === 0) {
+            alert("No data to export.");
+            return;
+        }
+
+        const toYMD = (d) => {
+            if (!d) return "";
+            if (typeof d === "string" && d.includes("T")) return d.slice(0, 10); // "2025-08-01"
+            const dt = new Date(d);
+            return isNaN(dt) ? "" : dt.toISOString().slice(0, 10);
+        };
+
+        // remove unwanted keys + format dates
+        const exportData = tableData.map(
+            ({
+                id, products_id, category_id, supplier_id, unit_id,
+                created_by, updated_by, brand_id, shedule, base_unit_id,
+                ...rest
+            }) => ({
+                ...rest,
+                manufacturing_date: toYMD(rest.manufacturing_date),
+                expiry_date: toYMD(rest.expiry_date),
+                created_on: toYMD(rest.created_on),
+                updated_on: toYMD(rest.updated_on),
+            })
+        );
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Main_Inventory_ProductsList");
+        XLSX.writeFile(wb, "Main_Inventory_ProductsList.xlsx");
+    };
+
     return (
         <Box sx={{
             width: "99vw",
@@ -190,7 +245,7 @@ function ProductsPage() {
             >
                 <HeaderPannel HeaderTitle="Manage Main Inventory"
                     tableData={tableData}
-                // onDownloadCurrentList ={onDownloadxl}
+                    onDownloadCurrentList={onDownloadxl}
                 />
 
                 <Box sx={{ width: "99%" }}>

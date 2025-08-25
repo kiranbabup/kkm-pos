@@ -5,7 +5,7 @@ import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { useEffect, useState } from "react";
 // import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer, BarChart, YAxis, XAxis, Bar } from "recharts";
 import CountCard from "../../components/dashboard_components/CountCard";
-// import { getDashboardStats } from "../../services/api";
+import { getDashboardStats } from "../../services/api";
 import LocalMallIcon from '@mui/icons-material/LocalMall';
 import BrandingWatermarkRoundedIcon from '@mui/icons-material/BrandingWatermarkRounded';
 import CategoryRoundedIcon from '@mui/icons-material/CategoryRounded';
@@ -22,7 +22,7 @@ const COLORS = ["green", "red",];
 
 const SuperAdminDashboard = () => {
   // const [allProduactsCount, setAllProduactsCount] = useState(0);
-  const [allStores, setAllStores] = useState(0);
+  // const [allStores, setAllStores] = useState(0);
   const [counts, setCounts] = useState({});
   const navigate = useNavigate();
 
@@ -33,11 +33,11 @@ const SuperAdminDashboard = () => {
     // })
     //   .catch(() => setAllStores(0));
 
-    // getDashboardStats().then(res => {
-    //   console.log(res.data);
-    //   setCounts(res.data || {});
-    // })
-    //   .catch(() => setCounts({}));
+    getDashboardStats().then(res => {
+      console.log(res.data);
+      setCounts(res.data || {});
+    })
+      .catch(() => setCounts({}));
   }, []);
 
   const user = LsService.getItem(storageKey);
@@ -56,85 +56,85 @@ const SuperAdminDashboard = () => {
       HeadTitle: "Total Products",
       IconCompo: LocalMallIcon,
       Value: counts.totalProducts || 0,
-      navpath: ""
+      navpath: "/products"
     },
     {
-      HeadTitle: "Total Users",
+      HeadTitle: "Total Staff",
       IconCompo: SupervisorAccountIcon,
-      Value: counts.activeUsers || 0,
-      navpath: ""
+      Value: counts.totalUsers || 0,
+      navpath: "/users_management"
     },
     {
       HeadTitle: "Total Customers",
       IconCompo: SupervisorAccountIcon,
       Value: counts.totalCustomers || 0,
-      navpath: ""
+      navpath: "/billings"
     },
     {
       HeadTitle: "Total Orders",
       IconCompo: TrackChangesIcon,
       Value: counts.totalOrders || 0,
-      navpath: ""
+      navpath: "/billings"
     },
     {
       HeadTitle: "Total Stores",
       IconCompo: StoreIcon,
-      Value: counts.allStores || 0,
-      navpath: ""
+      Value: counts.totalStores || 0,
+      navpath: "/stores"
     },
     {
       HeadTitle: "Total Brands",
       IconCompo: BrandingWatermarkRoundedIcon,
-      Value: counts.activeBrands || 0,
-      navpath: ""
+      Value: counts.brandsCount || 0,
+      navpath: "/brands"
     },
     {
       HeadTitle: "Total Categories",
       IconCompo: CategoryRoundedIcon,
-      Value: counts.activeCategories || 0,
-      navpath: ""
+      Value: counts.categoriesCount || 0,
+      navpath: "/categories"
     },
     {
       HeadTitle: "Total Suppliers",
       IconCompo: SupervisorAccountIcon,
-      Value: counts.activeSuppliers || 0,
-      navpath: ""
+      Value: counts.suppliersCount || 0,
+      navpath: "/suppliers"
     },
     {
       HeadTitle: "Total Low Stock Products",
       IconCompo: BookmarkRemoveIcon,
       Value: counts.lowStockProducts || 0,
-      navpath: ""
+      navpath: "/products"
     },
     {
       HeadTitle: "Total Out of Stock Products",
       IconCompo: DangerousIcon,
       Value: counts.outOfStockProducts || 0,
-      navpath: ""
+      navpath: "/products"
     },
     {
       HeadTitle: "Total Sales",
       IconCompo: ShowChartIcon,
       Value: counts.totalSales || 0,
-      navpath: ""
+      navpath: "/billings"
     },
     {
       HeadTitle: "Daily Sales",
       IconCompo: TrendingDownRoundedIcon,
-      Value: counts.dailySales || 0,
-      navpath: ""
+      Value: counts.todaySales || 0,
+      navpath: "/billings"
     },
     {
       HeadTitle: "Total Weekly Sales",
       IconCompo: TrendingDownRoundedIcon,
-      Value: counts.weeklySales || 0,
-      navpath: ""
+      Value: counts.weekSales || 0,
+      navpath: "/billings"
     },
     {
       HeadTitle: "Total Monthly Sales",
       IconCompo: TrendingDownRoundedIcon,
-      Value: counts.monthlySales || 0,
-      navpath: ""
+      Value: counts.monthSales || 0,
+      navpath: "/billings"
     },
   ]
 
