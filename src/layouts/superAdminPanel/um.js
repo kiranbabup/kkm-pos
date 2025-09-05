@@ -15,7 +15,7 @@ function UsersManagement() {
         pageSize: 10,
     });
     const [rowCount, setRowCount] = useState(0);
-    const [allUsers, setAllUsers] = useState([]);
+    // const [allUsers, setAllUsers] = useState([]);
     const [loadingUser, setLoadingUser] = useState(false);
     const [userMesg, setUserMesg] = useState("");
     const [userErrMesg, setUserErrMesg] = useState("");
@@ -34,15 +34,12 @@ function UsersManagement() {
     const [errMsg, seterrMsg] = useState("");
 
     useEffect(() => {
-        fetchUsers();
         fetchStores();
-    }, [paginationModel.page, paginationModel.pageSize]);
+    }, []);
 
-    // useEffect(() => {
-    //     const start = paginationModel.page * paginationModel.pageSize;
-    //     const end = start + paginationModel.pageSize;
-    //     setTableData(allUsers.slice(start, end));
-    // }, [paginationModel, allUsers]);
+    useEffect(() => {
+        fetchUsers();
+    }, [paginationModel]);
 
     const fetchUsers = async () => {
         try {
@@ -52,14 +49,16 @@ function UsersManagement() {
                 limit: paginationModel.pageSize,
             });
             console.log(response.data);
-            const mappedData = response.data.users.map((usr, index) => ({
+            const userData = response.data.users || [];
+            const mappedData = userData.map((usr, index) => ({
                 ...usr,
-                id: index + 1, // sequential table ID
+                // id: index + 1, // sequential table ID
+                id: paginationModel.page * paginationModel.pageSize + index + 1,
                 createdAt: usr.createdAt?.slice(0, 10),
             }));
 
             setTableData(mappedData);
-            setRowCount(response.data.totalusers); // Total count
+            setRowCount(response.data?.totalusers); // Total count
         } catch (error) {
             console.error("Error fetching Users:", error);
         } finally {
@@ -101,7 +100,7 @@ function UsersManagement() {
             seterrMsg("");
 
             // ✅ Check existing username
-            const existingUser = allUsers.find(
+            const existingUser = tableData.find(
                 (usr) => usr.username.toLowerCase() === formData.username.toLowerCase()
             );
             if (existingUser) {

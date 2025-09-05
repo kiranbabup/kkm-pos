@@ -28,7 +28,7 @@ const LoginPage = () => {
             } else if (user.role === "store") {
                 navigate("/store-manager");
             } else if (user.role === "cashier") {
-                navigate("/casher-panel");
+                navigate("/cashier-panel");
             }
         } else {
             return;

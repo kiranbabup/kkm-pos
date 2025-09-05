@@ -1,27 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, TextField, IconButton, Paper, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, Divider, Popover, InputAdornment } from "@mui/material";
+import { Box, Typography, Button, TextField, IconButton, Paper, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, Divider, Popover, } from "@mui/material";
 import MuiAlert from '@mui/material/Alert';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SearchIcon from '@mui/icons-material/Search';
-import LogoutIcon from '@mui/icons-material/Logout';
-import { get_store_product_details, get_customer_data, billing } from "../../../services/api";
+import { get_store_product_details, get_customer_data, billing, getAllStores, getLastOrder } from "../../../services/api";
 import LsService, { storageKey } from "../../../services/localstorage";
 import { useNavigate } from "react-router-dom";
-import { AccentButton, GlassCard, PaymentButton } from "../../../data/functions";
-import CloseIcon from "@mui/icons-material/Close";
+import { AccentButton, GlassCard } from "../../../data/functions";
+import billIcon from "./blackLogo.png";
+import "./print.css";
+import { generateReceipt, handlePrint } from "./cashFunctions";
+import Calculator from "./Calculator";
 
 const CashierDashboard = () => {
-  // Payment method state
-  const [paymentMethod, setPaymentMethod] = useState("cash");
-  // Calculator input state
-  const [amount, setAmount] = useState("0.00");
-  // Change to return to customer
-  const [changeAmount, setChangeAmount] = useState("");
-  // Product search input
   const [search, setSearch] = useState("");
   // Products fetched from API
   const [products, setProducts] = useState([]);
@@ -48,10 +42,19 @@ const CashierDashboard = () => {
   const [userLoginStatus, setuserLoginStatus] = useState("");
   const [storeId, setStoreId] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [printed, setPrinted] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+
+  // const [receiptData, setReceiptData] = useState(null); // new state for receipt data
+  const [billIconBase64, setBillIconBase64] = useState("");
+  const [storeDetails, setStoreDetails] = useState(null);
+
+  const navigate = useNavigate();
+  // const receiptRef = useRef(null);
 
   // Get storeId and user info from localStorage
   // const userLoginStatus = LsService.getItem(storageKey);
-
   useEffect(() => {
     const fetchStoreId = async () => {
       try {
@@ -61,6 +64,22 @@ const CashierDashboard = () => {
           setuserLoginStatus(userLogin);
           setStoreId(userLogin.store_id);
           setUserId(userLogin.user_id);
+
+          const response = await getAllStores();
+
+          if (response?.data) {
+            // find store by id
+            const selectedStore = response.data.stores.find(
+              (store) => store.store_id === userLogin.store_id
+            );
+
+            if (selectedStore) {
+              setStoreDetails(selectedStore);
+              console.log("Store Details:", selectedStore);
+            } else {
+              console.log("No store found with this ID");
+            }
+          }
         } else {
           console.log("Invalid store_code, no store found");
         }
@@ -69,10 +88,17 @@ const CashierDashboard = () => {
         // console.log("Failed to fetch store details");
       }
     };
-    fetchStoreId();
-  }, []);
 
-  const navigate = useNavigate();
+    fetchStoreId();
+
+    fetch(billIcon)
+      .then(res => res.blob())
+      .then(blob => {
+        const reader = new FileReader();
+        reader.onloadend = () => setBillIconBase64(reader.result);
+        reader.readAsDataURL(blob);
+      });
+  }, []);
 
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -171,9 +197,6 @@ const CashierDashboard = () => {
     return false;
   };
 
-  // Update quantity of a cart item
-  // Combo items: quantity always 1, "+" button does nothing
-  // Individual: cannot exceed quantity_available
   const handleQtyChange = (id, delta) => {
     setCart((prev) =>
       prev
@@ -202,20 +225,6 @@ const CashierDashboard = () => {
     setCart((prev) => prev.filter((item) => item.products_id !== id));
   };
 
-  // Calculate subtotal for cart (sale price)
-  const subTotal = cart.reduce(
-    (sum, item) => sum + (Number(item.discount_price || item.products_price) * item.quantity),
-    0
-  );
-
-  // const avgGst =
-  // cart && cart.length > 0
-  //   ? (
-  //       cart.reduce((sum, item) => sum + parseFloat(item.gst || 0), 0) /
-  //       cart.length
-  //     ).toFixed(2)
-  //   : 0;
-
   const totalGst =
     cart && cart.length > 0
       ? cart.reduce((sum, item) => {
@@ -227,30 +236,9 @@ const CashierDashboard = () => {
       }, 0).toFixed(2)
       : "0.00";
 
-
-
   // Show history handler
   const handleShowHistory = () => {
     navigate("/cashier-billing-history");
-  };
-
-  // Calculator input from buttons
-  const handleAmountInput = (val) => {
-    if (amount === "0.00") {
-      setAmount(val === "." ? "0." : String(val));
-    } else {
-      if (val === "." && amount.includes(".")) return;
-      setAmount(amount + String(val));
-    }
-  };
-
-  // Manual typing in calculator input
-  const handleAmountChange = (e) => {
-    let val = e.target.value.replace(/[^0-9.]/g, "");
-    if ((val.match(/\./g) || []).length > 1) {
-      val = val.slice(0, -1);
-    }
-    setAmount(val);
   };
 
   // Fetch customer details by mobile number and store full object
@@ -258,6 +246,8 @@ const CashierDashboard = () => {
     try {
       const res = await get_customer_data(phone);
       // Backend response: { data: { ...customerData }, is_purchased_combo: true/false }
+      console.log(res.data);
+
       if (res.data.data && res.data.data.name) {
         setCustomer(res.data.data); // Store full customer details
         setIsComboPurchased(res.data.is_purchased_combo); // Track combo purchase status
@@ -297,10 +287,32 @@ const CashierDashboard = () => {
   const hasComboItem = cart.some(item => item.is_combo);
 
   // Calculate MRP total for non-existing customer
-  const mrpTotal = cart.reduce(
-    (sum, item) => sum + (item.products_price * item.quantity),
-    0
-  );
+  const mrpTotal = cart.reduce((sum, item) => sum + (item.products_price * item.quantity), 0);
+
+  // Calculate subtotal for cart (sale price)
+  const subTotal = cart.reduce((sum, item) => sum + (Number(item.discount_price || item.products_price) * item.quantity), 0);
+
+  // bill print Preview
+  const onHandlePrintPreview = () => {
+    const printPayload = {
+      user_id: userId, // cashier id from localStorage
+      total_amount: (!hasComboItem && !isExistingCustomer) ? mrpTotal : subTotal,
+      payment_method: paymentMethod,
+      store_id: storeId,
+      products: cart.map(item => ({
+        price: (!hasComboItem && !isExistingCustomer) ? item.products_price : (item.discount_price || item.products_price),
+        quantity: item.quantity,
+        product_name: item.products_name
+      })),
+      is_existing_customer: isExistingCustomer,
+      customer_phone: customerMobile,
+    };
+    const cashier_name = userLoginStatus.username
+    const invoiceNumber = "";
+    const receiptContent = generateReceipt(printPayload, billIconBase64, storeDetails, customerName, invoiceNumber, cashier_name);
+    // setReceiptData(receiptContent);
+    handlePrint(receiptContent);
+  }
 
   // Billing submit handler
   const handleBillingSubmit = async () => {
@@ -317,38 +329,104 @@ const CashierDashboard = () => {
         product_id: item.is_combo ? null : item.products_id, // null for combo, id for individual
         is_combo: item.is_combo,
         combo_id: item.is_combo ? item.barcode : null, // barcode for combo, null for individual
-        quantity: item.quantity
+        quantity: item.quantity,
+        product_name: item.products_name,
       })),
       is_existing_customer: isExistingCustomer,
       customer_phone: customerMobile
     };
+    const cashier_name = userLoginStatus.username;
 
     try {
-      await billing(payload); // Call the billing API
-      setCart([]);
-      setAmount("0.00");
-      setChangeAmount("");
-      setCustomerMobile("");
-      setCustomerName("");
-      setCustomer(null);
-      setIsExistingCustomer(true);
-      setSearch("");
-      setBillingOpen(false);
-      setSuccessSnackbarOpen(true); // Show success Snackbar
+      setSubmitLoading(true);
+      const resp = await billing(payload); // Call the billing API
+      console.log(resp);
+
+      if (resp.status === 200) {
+        console.log(resp.data);
+        const receiptContent = generateReceipt(payload, billIconBase64, storeDetails, customerName, resp.data.invoiceNumber, cashier_name);
+
+        // setReceiptData(receiptContent);
+
+        setTimeout(() => {
+          handlePrint(receiptContent);
+          setPrinted(true);
+          setSuccessSnackbarOpen(true);
+          setSubmitLoading(false);
+        }, 500);
+      }
     } catch (err) {
       console.error("Billing error:", err);
-      // Optionally show error Snackbar here
+      setSubmitLoading(false);
     }
   };
 
-  const onCalChange = () => {
-    const paid = parseFloat(amount) || 0;
-    const total = (!hasComboItem && !isExistingCustomer) ? mrpTotal : subTotal;
-    const change = paid - total;
-    setChangeAmount(change >= 0 ? change.toFixed(2) : "0.00");
-    setTimeout(() => {
-      setChangeAmount("")
-    }, 20000);
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSuccessSnackbarOpen(false);
+    // if (receiptData) {
+    //   handlePrint(receiptData);
+    //   setReceiptData(null);
+    // }
+  };
+
+  const rePrintLastOrder = async () => {
+    const payload = {
+      "user_id": userId,
+      "store_id": storeId
+    }
+    console.log(payload);
+
+    try {
+      const response = await getLastOrder(payload);
+      console.log(response);
+      // console.log(response.data.orders);
+      if (response.status === 200 && response.data?.order) {
+        const order = response.data.order;
+        console.log(order.cart);
+
+        const invoiceNumber = order.invoice_number;
+
+        const rePrintPayload = {
+          user_id: userId,
+          total_amount: order.total,
+          payment_method: paymentMethod,
+          store_id: storeId,
+          products: order.cart.map(item => ({
+            price: item.price,
+            quantity: item.quantity,
+            product_name: item.name,
+          })),
+          customer_phone: order.customer_phone || 'Guest',
+        };
+        const cashier_name = userLoginStatus.username; // ✅ check correct key
+
+        if (invoiceNumber) {
+          const receiptContent = generateReceipt(rePrintPayload, billIconBase64, storeDetails, customerName, invoiceNumber, cashier_name);
+          // setReceiptData(receiptContent);
+          handlePrint(receiptContent);
+          setPrinted(true);
+        }
+      }
+      // Show success Snackbar
+      setSuccessSnackbarOpen(true);
+
+    } catch (error) {
+      console.log(error.response.data.message);
+    }
+  };
+
+  const onHandleCC = () => {
+    setBillingOpen(false);
+    setCart([]);
+    setCustomerMobile("");
+    setCustomerName("");
+    setCustomer(null);
+    setIsExistingCustomer(true);
+    setSearch("");
+    setBillingOpen(false);
   }
 
   return (
@@ -360,6 +438,7 @@ const CashierDashboard = () => {
       flexDirection: "column",
       gap: 2,
     }}>
+
       {/* Header */}
       <Box
         sx={{
@@ -402,6 +481,7 @@ const CashierDashboard = () => {
             sx={{ minWidth: 340 }}
             autoComplete="off"
           />
+
           {/* Search Results Dropdown */}
           {showDropdown && search && !/^\d{4,}$/.test(search) && (
             <Paper sx={{
@@ -453,6 +533,7 @@ const CashierDashboard = () => {
             Show History
           </AccentButton>
 
+          {/* user avatar, details & logout button */}
           <Box sx={{ display: "flex", justifyContent: "end", alignItems: "center" }}>
             <Box
               sx={{
@@ -516,6 +597,7 @@ const CashierDashboard = () => {
         minHeight: 0,
         alignItems: "stretch",
       }}>
+
         {/* Left: Cart & Summary */}
         <GlassCard sx={{ flex: 2.5, minWidth: 0, mr: 2 }}>
           <Typography variant="h6" fontWeight={700} gutterBottom>
@@ -665,10 +747,6 @@ const CashierDashboard = () => {
                   <Typography>Sub Total</Typography>
                   <Typography>₹{subTotal.toFixed(2)}</Typography>
                 </Box>
-                {/* <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography>SGST</Typography>
-          <Typography>₹0.00</Typography>
-        </Box> */}
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <Typography>GST</Typography>
                   <Typography>₹{totalGst}</Typography>
@@ -696,80 +774,7 @@ const CashierDashboard = () => {
           }
         </GlassCard >
 
-        {/* Right: Calculator & Payment */}
-        < GlassCard sx={{ flex: 0.8, minWidth: 0, maxWidth: 300, alignItems: "center", gap: 2 }}>
-          {/* Calculator input */}
-
-          < TextField
-            value={amount}
-            onChange={handleAmountChange}
-            variant="standard"
-            size="medium"
-            inputProps={{
-              style: { fontSize: 28, textAlign: "center", color: "#0072ff", fontWeight: 700 },
-              inputMode: "decimal",
-              pattern: "[0-9.]*"
-            }}
-            sx={{ width: 200, mb: 2 }}
-            InputProps={{
-              endAdornment: (
-                amount && ( // show only if there is text
-                  <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setAmount("")}>
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              ),
-            }}
-          />
-          {/* Calculator UI */}
-          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 70px)", gap: 2 }}>
-            {[7, 8, 9, 4, 5, 6, 1, 2, 3, 0, "00", "."].map((val, idx) => (
-              <Button
-                key={idx}
-                variant="contained"
-                sx={{
-                  borderRadius: 2,
-                  fontSize: 22,
-                  background: "#e0e7ff",
-                  color: "#222",
-                  fontWeight: 700,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                }}
-                onClick={() => handleAmountInput(val)}
-              >
-                {val}
-              </Button>
-            ))}
-          </Box>
-
-          {/* Calculate Change button */}
-          <AccentButton
-            fullWidth
-            sx={{ mt: 2 }}
-            onClick={() => onCalChange()}
-          >
-            Calculate Change
-          </AccentButton>
-
-          {/* Show the change below the button */}
-          {
-            changeAmount !== "" && (
-              <Typography sx={{ mt: 2, fontWeight: 700, fontSize: 20 }}>
-                Change: <span style={{ color: "#0072ff" }}>₹ {changeAmount}</span>
-              </Typography>
-            )
-          }
-          {/* Only show Cash payment method */}
-          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-            <PaymentButton
-              startIcon={<AttachMoneyIcon />}
-              selected={paymentMethod === "cash"}
-              onClick={() => setPaymentMethod("cash")}
-            >Cash</PaymentButton>
-          </Box>
-        </GlassCard >
+        <Calculator isExistingCustomer={isExistingCustomer} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} hasComboItem={hasComboItem} mrpTotal={mrpTotal} subTotal={subTotal} />
       </Box >
 
       {/* Billing Dialog */}
@@ -850,20 +855,50 @@ const CashierDashboard = () => {
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setBillingOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            color="primary"
-            // Disable submit if non-existing customer with combo OR existing customer already purchased combo
-            disabled={
-              (!isExistingCustomer && hasComboItem) ||
-              (isExistingCustomer && hasComboItem && isComboPurchased)
-            }
-            onClick={handleBillingSubmit}
-          >
-            Submit
-          </Button>
+        <DialogActions sx={{ display: "flex", justifyContent: "space-evenly" }} >
+          {
+            printed ?
+              <Button variant="contained"
+                color="error" onClick={() => onHandleCC()}>Close & Clear</Button> :
+              <Button onClick={() => { setBillingOpen(false); }}>Cancel</Button>
+          }
+          {
+            printed ?
+              <Button
+                variant="contained"
+                color="secondary"
+                // Disable submit if non-existing customer with combo OR existing customer already purchased combo
+                disabled={
+                  (!isExistingCustomer && hasComboItem) ||
+                  (isExistingCustomer && hasComboItem && isComboPurchased)
+                }
+                onClick={() => rePrintLastOrder()}
+              >
+                Re-Print
+              </Button> :
+              <Button
+                variant="contained"
+                color="success"
+                // Disable submit if non-existing customer with combo OR existing customer already purchased combo
+                disabled={
+                  (!isExistingCustomer && hasComboItem) ||
+                  (isExistingCustomer && hasComboItem && isComboPurchased) || submitLoading
+                }
+                onClick={() => handleBillingSubmit()}
+              >
+                Submit
+              </Button>
+          }
+          {
+            !printed &&
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => onHandlePrintPreview()}
+            >
+              Print Preview
+            </Button>
+          }
         </DialogActions>
       </Dialog >
 
@@ -871,13 +906,13 @@ const CashierDashboard = () => {
       < Snackbar
         open={successSnackbarOpen}
         autoHideDuration={4000}
-        onClose={() => setSuccessSnackbarOpen(false)}
+        onClose={() => handleSnackbarClose()}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <MuiAlert
           elevation={6}
           variant="filled"
-          onClose={() => setSuccessSnackbarOpen(false)}
+          onClose={() => handleSnackbarClose()}
           severity="success"
           sx={{ width: '100%' }}
         >

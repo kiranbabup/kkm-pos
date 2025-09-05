@@ -222,7 +222,7 @@ function StoreRecivedProducts() {
                         setSelectedRow(params.row);
                         setOpenVerifyModal(true);
                     }}
-                    disabled={params.row.status === "Checked" || !params.row.remarks || !params.row.remarks_quantity}
+                    disabled={params.row.status === "Checked" || !params.row.remarks}
                 >
                     Verify
                 </Button>

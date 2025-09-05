@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { getAllStores, getStoreDetailsbyId, getStoreInvtryDetails, updateRemarks } from "../../../services/api";
+import { getStoreInvtryDetails, } from "../../../services/api";
 import TableComponent from "../../../components/TableComponent";
-import { Box, Button, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import { Box, Typography, } from "@mui/material";
 import LeftPannel from "../../../components/LeftPannel";
 import HeaderPannel from "../../../components/HeaderPannel";
 import LsService, { storageKey } from "../../../services/localstorage";

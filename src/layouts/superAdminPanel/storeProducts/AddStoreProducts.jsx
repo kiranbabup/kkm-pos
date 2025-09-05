@@ -101,6 +101,7 @@ function AddStoreProducts() {
             setTimeout(() => {
                 setProductMesg("");
                 setProductErrMesg("");
+                onClear();
             }, 20000);
         }
     };

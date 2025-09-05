@@ -53,7 +53,7 @@ const LeftPannel = ({ HeaderTitle }) => {
         "/super-admin": <DashboardIcon />,
         "/warehouse-admin": <DashboardIcon />,
         "/store-manager": <DashboardIcon />,
-        "/casher-panel": <DashboardIcon />,
+        // "/casher-panel": <DashboardIcon />,
         "/categories": <CategoryIcon />,
         "//suppliers": <BusinessIcon />,
         "/units": <ClassIcon />,

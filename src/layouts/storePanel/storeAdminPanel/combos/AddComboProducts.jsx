@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getStoreDetailsbyId, addCombo } from "../../../../services/api";
+import { getStoreInvtryDetails, addCombo } from "../../../../services/api";
 import { Box, Button, Typography, Grid, TextField, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import LeftPannel from "../../../../components/LeftPannel";
 import HeaderPannel from "../../../../components/HeaderPannel";
@@ -60,7 +60,7 @@ function AddComboProducts() {
                 console.log(storeId);
 
                 setLoading(true);
-                const response = await getStoreDetailsbyId(storeId);
+                const response = await getStoreInvtryDetails(storeId);
                 console.log("Store Products:", response.data);
 
                 const mappedData = response.data.data

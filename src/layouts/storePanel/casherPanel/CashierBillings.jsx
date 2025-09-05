@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getAllOrders } from "../../../services/api";
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Collapse, IconButton, Divider, Button, Popover, } from "@mui/material";
+import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Collapse, IconButton, Divider, Button, Popover, CircularProgress, } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import LsService, { storageKey } from "../../../services/localstorage";
@@ -28,6 +28,16 @@ function Row({ order }) {
                 <TableCell>{order.paymentMethod}</TableCell>
                 <TableCell>₹{order.total}</TableCell>
                 <TableCell>{order.user_name}</TableCell>
+                <TableCell>
+                    <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => alert("Print functionality coming soon!")}
+                    >
+                        Print Receipt
+                    </Button>
+                </TableCell>
+
             </TableRow>
 
             {/* Collapsible Child Row = Cart Items */}
@@ -109,6 +119,7 @@ function CashierBillings() {
     useEffect(() => {
         const fetchIds = async () => {
             try {
+                setLoading(true);
                 const userLoginStatus = LsService.getItem(storageKey);
                 const strId = userLoginStatus.store_id;
                 const usrId = userLoginStatus.user_id;
@@ -143,7 +154,7 @@ function CashierBillings() {
             console.log(response);
             console.log(response.data.orders);
 
-            setOrders(response.data.orders || []);
+            setOrders(response.data.orders.reverse() || []);
 
             setOrderMesg(response.data.message);
         } catch (error) {
@@ -269,23 +280,40 @@ function CashierBillings() {
 
                 <TableContainer component={Paper}>
                     <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell />
-                                <TableCell>Invoice No</TableCell>
-                                <TableCell>Customer</TableCell>
-                                <TableCell>Mobile</TableCell>
-                                <TableCell>Order Date</TableCell>
-                                <TableCell>Payment</TableCell>
-                                <TableCell>Total</TableCell>
-                                <TableCell>Cashier</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {paginatedOrders.map((order) => (
-                                <Row key={order.order_id} order={order} />
-                            ))}
-                        </TableBody>
+                        {
+                            loading ? (
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell colSpan={9} align="center">
+                                            <CircularProgress color="primary" />
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            ) : (
+                                <>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell />
+                                            <TableCell>Invoice No</TableCell>
+                                            <TableCell>Customer</TableCell>
+                                            <TableCell>Mobile</TableCell>
+                                            <TableCell>Order Date</TableCell>
+                                            <TableCell>Payment</TableCell>
+                                            <TableCell>Total</TableCell>
+                                            <TableCell>Cashier</TableCell>
+                                            <TableCell>Action</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {
+                                            paginatedOrders.map((order) => (
+                                                <Row key={order.order_id} order={order} />
+                                            ))
+                                        }
+                                    </TableBody>
+                                </>
+                            )
+                        }
                     </Table>
                     <TablePagination
                         component="div"

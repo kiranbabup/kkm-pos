@@ -114,10 +114,11 @@ function StoresPage() {
 
     const handleEdit = async () => {
         try {
-            const response = await updateStore(editSupSrlno, { formData });
+            const response = await updateStore(editSupSrlno, formData );
             console.log(response);
             console.log(response.data);
             if (response.status === 200) {
+                setModalOpen(false);
                 setStoreMesg(response.data.message);
                 fetchStores();
             } else {
